@@ -235,6 +235,7 @@ namespace SaltedCaramel
             }
             else if (this.command == "steal_token")
             {
+                // EXPERIMENTAL - doesn't quite work yet
                 Token.StealToken(780);
             }
             else if (this.command == "reset_token")

