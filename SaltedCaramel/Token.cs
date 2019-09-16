@@ -99,19 +99,19 @@ namespace SaltedCaramel
                     }
                     catch (Exception e) // Catch errors thrown by DuplicateTokenEx
                     {
-                        Debug.WriteLine("[!] StealToken - Error duplicating token: " + e.Message);
+                        Debug.WriteLine("[!] StealToken - ERROR duplicating token: " + e.Message);
                         return false;
                     }
                 }
                 catch (Exception e) // Catch errors thrown by OpenProcessToken
                 {
-                    Debug.WriteLine("[!] StealToken - Error creating token handle: " + e.Message);
+                    Debug.WriteLine("[!] StealToken - ERROR creating token handle: " + e.Message);
                     return false;
                 }
             }
             catch (Exception e) // Catch errors thrown by Process.GetProcessById
             {
-                Debug.WriteLine("[!] StealToken - Error creating process handle: " + e.Message);
+                Debug.WriteLine("[!] StealToken - ERROR creating process handle: " + e.Message);
                 return false;
             }
 

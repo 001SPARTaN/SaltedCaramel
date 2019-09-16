@@ -22,9 +22,7 @@ namespace SaltedCaramel
                 using (CryptoStream encryptCryptStream = new CryptoStream(encryptMemStream, encryptor, CryptoStreamMode.Write))
                 {
                     using (StreamWriter encryptStreamWriter = new StreamWriter(encryptCryptStream))
-                    {
                         encryptStreamWriter.Write(plaintext);
-                    }
                     // We need to send iv:ciphertext
                     byte[] encrypted = scAes.IV.Concat(encryptMemStream.ToArray()).ToArray();
                     // Return base64 encoded ciphertext
@@ -36,6 +34,7 @@ namespace SaltedCaramel
         internal string Decrypt(string encrypted)
         {
             byte[] input = Convert.FromBase64String(encrypted);
+
             // Input is IV:ciphertext, IV is 16 bytes
             byte[] IV = new byte[16];
             byte[] ciphertext = new byte[input.Length - 16];

