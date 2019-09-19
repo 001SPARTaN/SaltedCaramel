@@ -141,5 +141,11 @@ namespace SaltedCaramel
 
             return duplicateToken;
         }
+
+        internal static void Revert()
+        {
+            CloseHandle(stolenHandle);
+            stolenHandle = IntPtr.Zero;
+        }
     }
 }

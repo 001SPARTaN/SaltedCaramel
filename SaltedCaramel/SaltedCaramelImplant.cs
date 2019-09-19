@@ -351,7 +351,7 @@ namespace SaltedCaramel
             }
         }
 
-        public bool hasAlternateToken()
+        internal bool hasAlternateToken()
         {
             if (Token.stolenHandle != IntPtr.Zero)
                 return true;

