@@ -80,13 +80,13 @@ namespace SaltedCaramel
             try
             {
                 NamedPipeServerStream pipeServer = new NamedPipeServerStream("CaramelPipe", PipeDirection.InOut);
-
                 NamedPipeClientStream pipeClient = new NamedPipeClientStream("CaramelPipe");
                 pipeClient.Connect();
                 pipeServer.WaitForConnection();
 
                 if (pipeClient.IsConnected)
                 {
+                    // Set process to use named pipe for input/output
                     startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
                     startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
                 }
@@ -104,6 +104,7 @@ namespace SaltedCaramel
                     Process test = Process.GetProcessById(GetProcessId(newProc.hProcess));
                     Debug.WriteLine("Got process handle!");
 
+                    // Trying to continuously read output while the process is running.
                     IntPtr wait = (IntPtr)1;
                     ThreadPool.QueueUserWorkItem((p) => wait = WaitForSingleObject(newProc.hProcess, (UInt32)1));
                     while (wait != IntPtr.Zero)

