@@ -89,5 +89,8 @@
   <ItemGroup>
     <Folder Include="libs\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Caramel.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
