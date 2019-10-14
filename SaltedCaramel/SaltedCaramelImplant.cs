@@ -116,16 +116,6 @@ namespace SaltedCaramel
         }
 
         /// <summary>
-        /// Download file from Apfell controller to implant
-        /// </summary>
-        /// <param name="file_id">The file ID to download.</param>
-        /// <param name="filepath">The path to drop the file on disk.</param>
-        /// <param name="taskId">The task ID associated with this task.</param>
-        internal void GetFile(string file_id, string filepath, string taskId)
-        {
-        }
-
-        /// <summary>
         /// Send initial implant callback, different from normal task response
         /// because we need to get the implant ID from Apfell server
         /// </summary>

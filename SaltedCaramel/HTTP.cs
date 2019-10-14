@@ -24,7 +24,7 @@ namespace SaltedCaramel
             request.ContentType = "text/plain";
             request.ContentLength = reqPayload.Length;
 
-            // Send bytes to endpoint
+            // Send payload to endpoint
             Stream rqstream = request.GetRequestStream();
             rqstream.Write(reqPayload, 0, reqPayload.Length);
             rqstream.Close();

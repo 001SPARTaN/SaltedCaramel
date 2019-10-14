@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>SaltedCaramel</RootNamespace>
     <AssemblyName>SaltedCaramel</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <PublishUrl>publish\</PublishUrl>
@@ -78,6 +78,7 @@
     <Compile Include="SaltedCaramelImplant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SaltedCaramelProcess.cs" />
+    <Compile Include="Tasks\ChangeDir.cs" />
     <Compile Include="Tasks\DirectoryList.cs" />
     <Compile Include="Tasks\Download.cs" />
     <Compile Include="Tasks\Exit.cs" />
