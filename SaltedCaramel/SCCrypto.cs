@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace SaltedCaramel
 {
-    public class SaltedCaramelCrypto
+    public class SCCrypto
     {
         internal byte[] PSK { get; set; }
 

