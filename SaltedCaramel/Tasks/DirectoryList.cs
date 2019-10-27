@@ -44,7 +44,7 @@ namespace SaltedCaramel.Tasks
                 }
 
                 SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fileList), task.id);
-                implant.SCPostResp(response);
+                implant.PostResponse(response);
                 implant.SendComplete(task.id);
             }
             catch (DirectoryNotFoundException)

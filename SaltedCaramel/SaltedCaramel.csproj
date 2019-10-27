@@ -73,11 +73,11 @@
   <ItemGroup>
     <Compile Include="HTTP.cs" />
     <Compile Include="SaltedCaramel.cs" />
-    <Compile Include="SaltedCaramelCrypto.cs" />
-    <Compile Include="SaltedCaramelTask.cs" />
-    <Compile Include="SaltedCaramelImplant.cs" />
+    <Compile Include="SCCrypto.cs" />
+    <Compile Include="SCTask.cs" />
+    <Compile Include="SCImplant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SaltedCaramelProcess.cs" />
+    <Compile Include="Tasks\Proc.cs" />
     <Compile Include="Tasks\ChangeDir.cs" />
     <Compile Include="Tasks\DirectoryList.cs" />
     <Compile Include="Tasks\Download.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="Tasks\Exit.cs" />
     <Compile Include="Tasks\Powershell.cs" />
     <Compile Include="Tasks\ProcessList.cs" />
+    <Compile Include="Tasks\Request.cs" />
     <Compile Include="Tasks\ScreenCapture.cs" />
     <Compile Include="Tasks\Token.cs" />
     <Compile Include="Tasks\Upload.cs" />
