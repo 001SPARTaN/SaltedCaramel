@@ -17,7 +17,7 @@ namespace SaltedCaramel
         public string response;
         public string id;
 
-        public SCTaskResp(string response, string id)
+        public SCTaskResp(string id, string response)
         {
             this.response = System.Convert.ToBase64String(Encoding.UTF8.GetBytes(response));
             this.id = id;
@@ -104,14 +104,14 @@ namespace SaltedCaramel
         public void SendComplete(string taskId)
         {
             Debug.WriteLine($"[+] SendComplete - Sending task complete for {taskId}");
-            SCTaskResp completeResponse = new SCTaskResp("{\"completed\": true}", taskId);
+            SCTaskResp completeResponse = new SCTaskResp(taskId, "{\"completed\": true}");
             this.PostResponse(completeResponse);
         }
 
         public void SendError(string taskId, string error)
         {
             Debug.WriteLine($"[+] SendError - Sending error for {taskId}: {error}");
-            SCTaskResp errorResponse = new SCTaskResp("{\"completed\": true, \"status\": \"error\", \"user_output\": \"" + error + "\"}", taskId);
+            SCTaskResp errorResponse = new SCTaskResp(taskId, "{\"completed\": true, \"status\": \"error\", \"user_output\": \"" + error + "\"}");
             this.PostResponse(errorResponse);
         }
 

