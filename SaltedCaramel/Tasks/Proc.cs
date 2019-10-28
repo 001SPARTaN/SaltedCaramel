@@ -140,8 +140,8 @@ namespace SaltedCaramel
             startInfo.FileName = split[0];
             startInfo.Arguments = argString;
             startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardOutput = true; // Ensure we get standard output
+            startInfo.CreateNoWindow = true; // Don't create a new window
 
             Process proc = new Process();
             proc.StartInfo = startInfo;
