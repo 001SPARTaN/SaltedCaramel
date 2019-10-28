@@ -5,26 +5,8 @@ namespace SaltedCaramel
 {
     internal class Win32
     {
-        [DllImport("advapi32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool OpenProcessToken(IntPtr ProcessHandle,
-            uint desiredAccess, out IntPtr TokenHandle);
-
-
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal extern static bool DuplicateTokenEx(
-            IntPtr hExistingToken,
-            uint dwDesiredAccess,
-            IntPtr lpTokenAttributes,
-            uint ImpersonationLevel,
-            TOKEN_TYPE TokenType,
-            out IntPtr phNewToken);
-
-        internal enum TOKEN_TYPE
-        {
-            TokenPrimary = 1,
-            TokenImpersonation
-        }
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool CloseHandle(IntPtr hObject);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool CreateProcessWithTokenW(IntPtr hToken, IntPtr dwLogonFlags,
@@ -42,6 +24,23 @@ namespace SaltedCaramel
             UnicodeEnvironment = 0x00000400,
             ExtendedStartupInfoPresent = 0x00080000
         }
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal extern static bool DuplicateTokenEx(
+            IntPtr hExistingToken,
+            uint dwDesiredAccess,
+            IntPtr lpTokenAttributes,
+            uint ImpersonationLevel,
+            TOKEN_TYPE TokenType,
+            out IntPtr phNewToken);
+
+        [DllImport("kernel32.dll")]
+        internal static extern int GetProcessId(IntPtr handle);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool OpenProcessToken(IntPtr ProcessHandle,
+            uint desiredAccess, out IntPtr TokenHandle);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct PROCESS_INFORMATION
@@ -89,10 +88,13 @@ namespace SaltedCaramel
              internal IntPtr hStdError;
         }
 
+        internal enum TOKEN_TYPE
+        {
+            TokenPrimary = 1,
+            TokenImpersonation
+        }
+
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
-
-        [DllImport("kernel32.dll")]
-        internal static extern int GetProcessId(IntPtr handle);
     }
 }

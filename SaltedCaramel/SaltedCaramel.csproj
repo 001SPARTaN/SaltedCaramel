@@ -105,6 +105,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Caramel.json" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

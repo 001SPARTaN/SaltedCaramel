@@ -10,19 +10,6 @@ namespace SaltedCaramel
     {
         internal static IntPtr stolenHandle;
 
-        public enum CreationFlags
-        {
-            DefaultErrorMode = 0x04000000,
-            NewConsole = 0x00000010,
-            NewProcessGroup = 0x00000200,
-            SeparateWOWVDM = 0x00000800,
-            Suspended = 0x00000004,
-            UnicodeEnvironment = 0x00000400,
-            ExtendedStartupInfoPresent = 0x00080000
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool CloseHandle(IntPtr hObject);
 
         public static void StealToken(SCTask task, SCImplant implant)
         {
@@ -94,7 +81,7 @@ namespace SaltedCaramel
 
         internal static void Revert()
         {
-            CloseHandle(stolenHandle);
+            Win32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;
         }
     }
