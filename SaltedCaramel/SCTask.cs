@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-
 using SaltedCaramel.Tasks;
 
 namespace SaltedCaramel
@@ -37,7 +36,7 @@ namespace SaltedCaramel
                 Debug.WriteLine("[-] DispatchTask - Tasked to send file " + this.@params);
                 Download.Execute(this, implant);
             }
-            else if (this.command == "execute-assembly")
+            else if (this.command == "execute_assembly")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to execute assembly " + this.@params);
                 Tasks.Assembly.Execute(this, implant);
