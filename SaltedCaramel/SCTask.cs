@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SaltedCaramel.Tasks;
+using System;
 using System.Diagnostics;
-using SaltedCaramel.Tasks;
 
 namespace SaltedCaramel
 {
