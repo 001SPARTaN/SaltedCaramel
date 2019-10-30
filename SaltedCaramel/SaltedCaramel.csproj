@@ -39,6 +39,7 @@
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    <CodeAnalysisRuleSet>MixedRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -88,6 +89,7 @@
     <Compile Include="Tasks\ProcessList.cs" />
     <Compile Include="Tasks\Request.cs" />
     <Compile Include="Tasks\ScreenCapture.cs" />
+    <Compile Include="Tasks\Shellcode.cs" />
     <Compile Include="Tasks\Token.cs" />
     <Compile Include="Tasks\Upload.cs" />
     <Compile Include="Win32.cs" />

