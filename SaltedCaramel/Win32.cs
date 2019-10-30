@@ -5,14 +5,40 @@ namespace SaltedCaramel
 {
     internal class Win32
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool CloseHandle(IntPtr hObject);
+        [Flags]
+        public enum AllocationType
+        {
+            Commit = 0x1000,
+            Reserve = 0x2000,
+            Decommit = 0x4000,
+            Release = 0x8000,
+            Reset = 0x80000,
+            Physical = 0x400000,
+            TopDown = 0x100000,
+            WriteWatch = 0x200000,
+            LargePages = 0x20000000
+        }
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern bool CreateProcessWithTokenW(IntPtr hToken, IntPtr dwLogonFlags,
-            string lpApplicationName, string lpCommandLine, IntPtr dwCreationFlags,
-            IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo,
+        internal static extern bool CreateProcessWithTokenW(
+            IntPtr hToken,
+            IntPtr dwLogonFlags,
+            string lpApplicationName, 
+            string lpCommandLine, 
+            IntPtr dwCreationFlags,
+            IntPtr lpEnvironment, 
+            string lpCurrentDirectory, 
+            [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
+
+        [DllImport("kernel32.dll")]
+        internal static extern IntPtr CreateThread(
+           IntPtr ThreadAttributes,
+           uint StackSize, 
+           IntPtr StartFunction,
+           IntPtr ThreadParameter, 
+           uint CreationFlags, 
+           ref uint ThreadId);
 
         internal enum CreationFlags
         {
@@ -24,6 +50,9 @@ namespace SaltedCaramel
             UnicodeEnvironment = 0x00000400,
             ExtendedStartupInfoPresent = 0x00080000
         }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool CloseHandle(IntPtr hObject);
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         internal extern static bool DuplicateTokenEx(
@@ -37,12 +66,48 @@ namespace SaltedCaramel
         [DllImport("kernel32.dll")]
         internal static extern int GetProcessId(IntPtr handle);
 
+        [Flags]
+        internal enum MemoryProtection
+        {
+            Execute = 0x10,
+            ExecuteRead = 0x20,
+            ExecuteReadWrite = 0x40,
+            ExecuteWriteCopy = 0x80,
+            NoAccess = 0x01,
+            ReadOnly = 0x02,
+            ReadWrite = 0x04,
+            WriteCopy = 0x08,
+            GuardModifierflag = 0x100,
+            NoCacheModifierflag = 0x200,
+            WriteCombineModifierflag = 0x400
+        }
+
+        [DllImport("ntdll.dll")]
+        internal static extern int NtQueryInformationProcess(
+            IntPtr processHandle,
+            int processInformationClass,
+            ref PROCESS_BASIC_INFORMATION ProcessBasicInfo,
+            int processInformationLength,
+            out int returnLength
+        );
+
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool OpenProcessToken(IntPtr ProcessHandle,
             uint desiredAccess, out IntPtr TokenHandle);
 
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct PROCESS_BASIC_INFORMATION
+        {
+            public IntPtr ExitStatus;
+            public IntPtr PebBaseAddress;
+            public IntPtr AffinityMask;
+            public IntPtr BasePriority;
+            public UIntPtr UniqueProcessId;
+            public IntPtr InheritedFromUniqueProcessId;
+        }
+
+            [StructLayout(LayoutKind.Sequential)]
         internal struct PROCESS_INFORMATION
         {
             internal IntPtr hProcess;
@@ -51,8 +116,16 @@ namespace SaltedCaramel
             internal int dwThreadId;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SECURITY_ATTRIBUTES
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public int bInheritHandle;
+        }
+
         [Flags]
-        public enum STARTF : uint
+        internal enum STARTF : uint
         {
             STARTF_USESHOWWINDOW = 0x00000001,
             STARTF_USESIZE = 0x00000002,
@@ -93,6 +166,17 @@ namespace SaltedCaramel
             TokenPrimary = 1,
             TokenImpersonation
         }
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        internal static extern IntPtr VirtualAlloc(uint lpAddress, uint dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        internal static extern IntPtr VirtualAllocEx(
+           IntPtr hProcess, 
+           IntPtr lpAddress,
+           IntPtr dwSize, 
+           AllocationType flAllocationType, 
+           MemoryProtection flProtect);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
