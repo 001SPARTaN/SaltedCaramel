@@ -60,8 +60,6 @@ namespace SaltedCaramel
         public string os { get; set; }
         public string architecture { get; set; }
         private int retry { get; set; }
-        internal byte[] PSK { get; set; }
-        internal SCCrypto crypto = new SCCrypto();
 
         /// <summary>
         /// Post a response to the Apfell endpoint

