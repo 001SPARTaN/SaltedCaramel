@@ -48,7 +48,12 @@ namespace SaltedCaramel.Tasks
         internal static int GetParentProcess(IntPtr procHandle)
         {
             Win32.PROCESS_BASIC_INFORMATION procinfo = new Win32.PROCESS_BASIC_INFORMATION();
-            int info = Win32.NtQueryInformationProcess(procHandle, 0, ref procinfo, Marshal.SizeOf(procinfo), out int rl);
+            _ = Win32.NtQueryInformationProcess(
+                procHandle,                 // ProcessHandle
+                0,                          // processInformationClass
+                ref procinfo,               // ProcessBasicInfo
+                Marshal.SizeOf(procinfo),   // processInformationLength
+                out _);                     // returnLength
             return procinfo.InheritedFromUniqueProcessId.ToInt32();
         }
 
@@ -59,7 +64,10 @@ namespace SaltedCaramel.Tasks
             try
             {
                 IntPtr tokenHandle = IntPtr.Zero;
-                Win32.OpenProcessToken(procHandle, (uint)TokenAccessLevels.MaximumAllowed, out procHandle);
+                _ = Win32.OpenProcessToken(
+                    procHandle,                                 // ProcessHandle
+                    (uint)TokenAccessLevels.MaximumAllowed,     // desiredAccess
+                    out procHandle);                            // TokenHandle
                 return new WindowsIdentity(procHandle).Name;
             }
             catch // If we can't open a handle to the process it will throw an exception

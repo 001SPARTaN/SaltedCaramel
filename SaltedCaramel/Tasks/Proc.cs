@@ -67,9 +67,20 @@ namespace SaltedCaramel
 
             // Create named pipe server and client
             // We need to use nanmed pipes to communicate with processes started using the Win32 API
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.In, NamedPipeServerStream.MaxAllowedServerInstances,
-                PipeTransmissionMode.Message, PipeOptions.None, 4096, 4096, sec);
-            NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.Out, PipeOptions.None);
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(
+                pipeName,
+                PipeDirection.In,
+                NamedPipeServerStream.MaxAllowedServerInstances,
+                PipeTransmissionMode.Message,
+                PipeOptions.None,
+                4096,
+                4096,
+                sec);
+            NamedPipeClientStream pipeClient = new NamedPipeClientStream(
+                ".",
+                pipeName,
+                PipeDirection.Out,
+                PipeOptions.None);
 
             // TODO: Use anonymous pipes instead of named pipes
             // AnonymousPipeServerStream anon = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.None, 1024, sec);
@@ -111,7 +122,16 @@ namespace SaltedCaramel
                 else
                     cmdLine = "\"" + file + "\"";
                 // Finally, create our new process
-                bool createProcess = Win32.CreateProcessWithTokenW(TokenHandle, IntPtr.Zero, null, cmdLine, IntPtr.Zero, IntPtr.Zero, directory, ref startupInfo, out newProc);
+                bool createProcess = Win32.CreateProcessWithTokenW(
+                    TokenHandle,        // hToken
+                    IntPtr.Zero,        // dwLogonFlags
+                    null,               // lpApplicationName
+                    cmdLine,            // lpCommandLineName
+                    IntPtr.Zero,        // dwCreationFlags
+                    IntPtr.Zero,        // lpEnvironment
+                    directory,          // lpCurrentDirectory
+                    ref startupInfo,    // lpStartupInfo
+                    out newProc);       // lpProcessInformation
                 Thread.Sleep(100); // Something weird is happening if the process exits before we can capture output
                 if (createProcess) // Process started successfully
                 {
