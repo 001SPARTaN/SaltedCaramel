@@ -108,25 +108,12 @@ namespace SaltedCaramel
                     throw new Exception("Error connecting to named pipe server.");
                 }
 
-                // We're using lpCommandLine to start our new process because I had issues using both lpApplicationName and lpCommandLine
-                string cmdLine;
-                string tokenized = "";
-                if (argString != "")
-                {
-                    foreach (string arg in argString.Split(' '))
-                    {
-                        tokenized += "\"" + arg + "\" ";
-                    }
-                    cmdLine = "\"" + file + "\" " + tokenized;
-                }
-                else
-                    cmdLine = "\"" + file + "\"";
                 // Finally, create our new process
                 bool createProcess = Win32.CreateProcessWithTokenW(
                     TokenHandle,        // hToken
                     IntPtr.Zero,        // dwLogonFlags
-                    null,               // lpApplicationName
-                    cmdLine,            // lpCommandLineName
+                    file,               // lpApplicationName
+                    file + " " + argString,            // lpCommandLineName
                     IntPtr.Zero,        // dwCreationFlags
                     IntPtr.Zero,        // lpEnvironment
                     directory,          // lpCurrentDirectory
