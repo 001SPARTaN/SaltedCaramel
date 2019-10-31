@@ -16,16 +16,12 @@ namespace SaltedCaramel.Tasks
             {
                 Dictionary<string, string> procEntry = new Dictionary<string, string>();
                 procEntry.Add("process_id", proc.Id.ToString());
-                try
-                {
-                    procEntry.Add("parent_process_id", GetParentProcess(proc.Handle).ToString());
-                }
-                catch
-                {
-                    procEntry.Add("parent_process_id", "");
-                }
+                // This will fail if we don't have permissions to access the process.
+                try { procEntry.Add("parent_process_id", GetParentProcess(proc.Handle).ToString()); }
+                // Ignore it and move on
+                catch { procEntry.Add("parent_process_id", ""); }
                 procEntry.Add("name", proc.ProcessName);
-                procEntry.Add("user", GetProcessUser(proc.Id));
+                procEntry.Add("user", GetProcessUser(proc.Handle));
                 procList.Add(procEntry);
             }
 
@@ -42,13 +38,12 @@ namespace SaltedCaramel.Tasks
             return procinfo.InheritedFromUniqueProcessId.ToInt32();
         }
 
-        internal static string GetProcessUser(int processId)
+        internal static string GetProcessUser(IntPtr procHandle)
         {
             try
             {
-                Process proc = Process.GetProcessById(processId);
-                IntPtr procHandle = IntPtr.Zero;
-                Win32.OpenProcessToken(proc.Handle, (uint)TokenAccessLevels.MaximumAllowed, out procHandle);
+                IntPtr tokenHandle = IntPtr.Zero;
+                Win32.OpenProcessToken(procHandle, (uint)TokenAccessLevels.MaximumAllowed, out procHandle);
                 return new WindowsIdentity(procHandle).Name;
             }
             catch // If we can't open a handle to the process it will throw an exception
