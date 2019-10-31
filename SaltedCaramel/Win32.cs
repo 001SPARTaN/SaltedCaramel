@@ -82,6 +82,12 @@ namespace SaltedCaramel
             WriteCombineModifierflag = 0x400
         }
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool IsWow64Process(
+                IntPtr hProcess,
+                out bool Wow64Process
+        );
+
         [DllImport("ntdll.dll")]
         internal static extern int NtQueryInformationProcess(
             IntPtr processHandle,

