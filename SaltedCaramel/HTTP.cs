@@ -6,35 +6,19 @@ namespace SaltedCaramel
 {
     class HTTP
     {
+        private static WebClient client = new WebClient();
+        internal static SCCrypto crypto = new SCCrypto();
+
         internal static string Get(string endpoint)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(endpoint);
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-            {
-                return reader.ReadToEnd();
-            }
+            return crypto.Decrypt(client.DownloadString(endpoint));
         }
+
         internal static string Post(string endpoint, string message)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(endpoint);
-            request.Method = "POST";
-            byte[] reqPayload = Encoding.UTF8.GetBytes(message);
-            request.ContentType = "text/plain";
-            request.ContentLength = reqPayload.Length;
+            byte[] reqPayload = Encoding.UTF8.GetBytes(crypto.Encrypt(message));
 
-            // Send payload to endpoint
-            Stream rqstream = request.GetRequestStream();
-            rqstream.Write(reqPayload, 0, reqPayload.Length);
-            rqstream.Close();
-
-            // Read response from endpoint
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-            {
-                return reader.ReadToEnd();
-            }
+            return crypto.Decrypt(Encoding.UTF8.GetString(client.UploadData(endpoint, reqPayload)));
         }
     }
 }
