@@ -110,15 +110,15 @@ namespace SaltedCaramel
 
                 // Finally, create our new process
                 bool createProcess = Win32.CreateProcessWithTokenW(
-                    TokenHandle,        // hToken
-                    IntPtr.Zero,        // dwLogonFlags
-                    file,               // lpApplicationName
-                    file + " " + argString,            // lpCommandLineName
-                    IntPtr.Zero,        // dwCreationFlags
-                    IntPtr.Zero,        // lpEnvironment
-                    directory,          // lpCurrentDirectory
-                    ref startupInfo,    // lpStartupInfo
-                    out newProc);       // lpProcessInformation
+                    TokenHandle,            // hToken
+                    IntPtr.Zero,            // dwLogonFlags
+                    file,                   // lpApplicationName
+                    file + " " + argString, // lpCommandLineName
+                    IntPtr.Zero,            // dwCreationFlags
+                    IntPtr.Zero,            // lpEnvironment
+                    directory,              // lpCurrentDirectory
+                    ref startupInfo,        // lpStartupInfo
+                    out newProc);           // lpProcessInformation
                 Thread.Sleep(100); // Something weird is happening if the process exits before we can capture output
                 if (createProcess) // Process started successfully
                 {
