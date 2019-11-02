@@ -5,7 +5,7 @@ namespace SaltedCaramel.Tasks
 {
     class Kill
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task)
         {
             int pid = Convert.ToInt32(task.@params);
             try
@@ -13,13 +13,14 @@ namespace SaltedCaramel.Tasks
                 Debug.WriteLine("[-] Kill - Killing process with PID " + pid);
                 Process target = Process.GetProcessById(pid);
                 target.Kill();
-                implant.PostResponse(new SCTaskResp(task.id, "Killed process with PID " + pid));
-                implant.SendComplete(task.id);
+                task.status = "complete";
+                task.message = $"Killed process with PID {pid}";
             }
             catch (Exception e)
             {
                 Debug.WriteLine("[-] Kill - ERROR killing process " + pid + ": " + e.Message);
-                implant.SendError(task.id, e.Message);
+                task.status = "error";
+                task.message = e.Message;
             }
         }
     }

