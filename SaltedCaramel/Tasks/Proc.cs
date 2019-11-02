@@ -56,10 +56,8 @@ namespace SaltedCaramel.Tasks
             string directory = "C:\\Temp";
 
             // Use random name for our named pipe (used to retrieve output from process)
-            byte[] random = new byte[2];
             Random rnd = new Random();
-            rnd.NextBytes(random);
-            string pipeName = "Caramel_" + BitConverter.ToString(random);
+            string pipeName = "Caramel_" + rnd.Next();
 
             // Set ACL on named pipe to allow any user to access
             PipeSecurity sec = new PipeSecurity();
