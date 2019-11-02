@@ -12,13 +12,12 @@ namespace SaltedCaramel
         public string command { get; set; }
         public string @params { get; set; }
         public string id { get; set; }
-#if (RELEASE)
-        internal string status { get; set; }
-        internal string message { get; set; }
-#endif
 #if (DEBUG)
         public string status { get; set; }
         public string message { get; set; }
+#else 
+        internal string status { get; set; }
+        internal string message { get; set; }
 #endif
 
         public SCTaskObject (string command, string @params, string id)

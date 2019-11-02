@@ -101,6 +101,7 @@ namespace SaltedCaramel.Tests
             task.DispatchTask(implant);
             Assert.AreEqual(task.status, "complete");
             Assert.IsNotNull(task.message);
+            Assert.IsTrue(task.message.Contains("PRIVILEGES"));
         }
         [TestMethod()]
         public void ProcWithTokenInvalid()
@@ -115,6 +116,38 @@ namespace SaltedCaramel.Tests
             task.DispatchTask(implant);
             Assert.AreEqual(task.status, "error");
             Assert.IsNotNull(task.message);
+            Assert.IsTrue(task.message.Contains("2"));
+        }
+        [TestMethod()]
+        public void ProcessList()
+        {
+            SCTaskObject task = new SCTaskObject("ps", "", "1");
+            task.DispatchTask(implant);
+            Assert.AreEqual(task.status, "complete");
+            Assert.IsNotNull(task.message);
+            Assert.IsTrue(task.message.Contains("explorer"));
+        }
+        // Relies on being able to communicate with Apfell server
+        //[TestMethod()]
+        //public void ScreenCapture()
+        //{
+        //    SCTaskObject task = new SCTaskObject("screencapture", "", "1");
+        //    task.DispatchTask(implant);
+        //    Assert.AreEqual(task.status, "complete");
+        //}
+        [TestMethod()]
+        public void TokenWinlogon()
+        {
+            SCTaskObject task = new SCTaskObject("steal_token", "", "1");
+            task.DispatchTask(implant);
+            Assert.AreEqual(task.status, "complete");
+        }
+        [TestMethod()]
+        public void TokenInvalid()
+        {
+            SCTaskObject task = new SCTaskObject("steal_token", "12351", "1");
+            task.DispatchTask(implant);
+            Assert.AreEqual(task.status, "error");
         }
     }
 }
