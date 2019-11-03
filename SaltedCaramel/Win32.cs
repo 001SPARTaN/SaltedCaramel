@@ -6,7 +6,7 @@ namespace SaltedCaramel
     internal class Win32
     {
         [Flags]
-        public enum AllocationType
+        internal enum AllocationType
         {
             Commit = 0x1000,
             Reserve = 0x2000,
@@ -83,7 +83,7 @@ namespace SaltedCaramel
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool IsWow64Process(
+        internal static extern bool IsWow64Process(
                 IntPtr hProcess,
                 out bool Wow64Process
         );
@@ -105,12 +105,12 @@ namespace SaltedCaramel
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         internal struct PROCESS_BASIC_INFORMATION
         {
-            public IntPtr ExitStatus;
-            public IntPtr PebBaseAddress;
-            public IntPtr AffinityMask;
-            public IntPtr BasePriority;
-            public UIntPtr UniqueProcessId;
-            public IntPtr InheritedFromUniqueProcessId;
+            internal IntPtr ExitStatus;
+            internal IntPtr PebBaseAddress;
+            internal IntPtr AffinityMask;
+            internal IntPtr BasePriority;
+            internal UIntPtr UniqueProcessId;
+            internal IntPtr InheritedFromUniqueProcessId;
         }
 
             [StructLayout(LayoutKind.Sequential)]
@@ -123,11 +123,11 @@ namespace SaltedCaramel
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct SECURITY_ATTRIBUTES
+        internal struct SECURITY_ATTRIBUTES
         {
-            public int nLength;
-            public IntPtr lpSecurityDescriptor;
-            public int bInheritHandle;
+            internal int nLength;
+            internal IntPtr lpSecurityDescriptor;
+            internal int bInheritHandle;
         }
 
         [Flags]

@@ -9,9 +9,9 @@ using System.IO;
 /// </summary>
 namespace SaltedCaramel.Tasks
 {
-    internal class Upload
+    public class Upload
     {
-        internal static byte[] GetFile(string file_id, SCImplant implant)
+        public static byte[] GetFile(string file_id, SCImplant implant)
         {
             byte[] bytes;
             string fileEndpoint = implant.endpoint + "files/callback/" + implant.callbackId;
@@ -29,7 +29,7 @@ namespace SaltedCaramel.Tasks
             }
         }
 
-        internal static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             JObject json = (JObject)JsonConvert.DeserializeObject(task.@params);
             string file_id = json.Value<string>("file_id");

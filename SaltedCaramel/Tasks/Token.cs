@@ -6,11 +6,11 @@ using System.Security.Principal;
 
 namespace SaltedCaramel.Tasks
 {
-    internal class Token
+    public class Token
     {
-        internal static IntPtr stolenHandle;
+        public static IntPtr stolenHandle;
 
-        internal static void Execute(SCTaskObject task)
+        public static void Execute(SCTaskObject task)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace SaltedCaramel.Tasks
 
         }
 
-        internal static void Revert(SCTaskObject task, SCImplant implant)
+        public static void Revert(SCTaskObject task, SCImplant implant)
         {
             Win32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;

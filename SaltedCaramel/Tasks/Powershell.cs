@@ -5,9 +5,9 @@ using System.Diagnostics;
 
 namespace SaltedCaramel.Tasks
 {
-    class Powershell
+    public class Powershell
     {
-        internal static void Execute(SCTaskObject task)
+        public static void Execute(SCTaskObject task)
         {
             string args = task.@params;
 

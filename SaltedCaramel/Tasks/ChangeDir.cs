@@ -4,9 +4,9 @@ using System.IO;
 
 namespace SaltedCaramel.Tasks
 {
-    class ChangeDir
+    public class ChangeDir
     {
-        internal static void Execute(SCTaskObject task)
+        public static void Execute(SCTaskObject task)
         {
             string path = task.@params;
 

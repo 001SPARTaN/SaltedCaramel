@@ -3,9 +3,9 @@ using System.Diagnostics;
 
 namespace SaltedCaramel.Tasks
 {
-    class Kill
+    public class Kill
     {
-        internal static void Execute(SCTaskObject task)
+        public static void Execute(SCTaskObject task)
         {
             int pid = Convert.ToInt32(task.@params);
             try

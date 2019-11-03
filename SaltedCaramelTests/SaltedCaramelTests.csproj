@@ -56,7 +56,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SCTaskObjectTests.cs" />
+    <Compile Include="DispatchTaskTests.cs" />
+    <Compile Include="TaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
