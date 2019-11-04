@@ -93,7 +93,7 @@ namespace SaltedCaramel.Tasks
 
         }
 
-        public static void Revert(SCTaskObject task, SCImplant implant)
+        public static void Revert(SCTaskObject task)
         {
             Win32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;

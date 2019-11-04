@@ -82,7 +82,7 @@ namespace SaltedCaramel
             else if (this.command == "rev2self")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to revert token");
-                Token.Revert(this, implant);
+                Token.Revert(this);
             }
             else if (this.command == "run")
             {
