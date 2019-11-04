@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Diagnostics;
 
 namespace SaltedCaramel.Tests
@@ -69,7 +70,8 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void ProcValid()
         {
-            SCTaskObject task = new SCTaskObject("run", "whoami", "1");
+            Tasks.Token.stolenHandle = IntPtr.Zero;
+            SCTaskObject task = new SCTaskObject("run", "whoami /priv", "1");
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual(task.status, "complete");
             Assert.IsNotNull(task.message);
@@ -77,6 +79,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void ProcInvalid()
         {
+            Tasks.Token.stolenHandle = IntPtr.Zero;
             SCTaskObject task = new SCTaskObject("run", "asdf", "1");
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual(task.status, "error");
@@ -85,6 +88,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void ProcWithTokenValid()
         {
+            Tasks.Token.stolenHandle = IntPtr.Zero;
             SCTaskObject task = new SCTaskObject("steal_token", "", "1");
             task.DispatchTask(implant);
 
@@ -96,6 +100,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual(task.status, "complete");
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("PRIVILEGES"));
+            Tasks.Token.stolenHandle = IntPtr.Zero;
         }
         [TestMethod()]
         public void ProcWithTokenInvalid()
@@ -111,6 +116,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual(task.status, "error");
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("2"));
+            Tasks.Token.stolenHandle = IntPtr.Zero;
         }
         [TestMethod()]
         public void ProcessList()
@@ -135,6 +141,7 @@ namespace SaltedCaramel.Tests
             SCTaskObject task = new SCTaskObject("steal_token", "", "1");
             Tasks.Token.Execute(task);
             Assert.AreEqual(task.status, "complete");
+            Tasks.Token.stolenHandle = IntPtr.Zero;
         }
         [TestMethod()]
         public void TokenInvalid()
@@ -142,6 +149,7 @@ namespace SaltedCaramel.Tests
             SCTaskObject task = new SCTaskObject("steal_token", "12351", "1");
             Tasks.Token.Execute(task);
             Assert.AreEqual(task.status, "error");
+            Tasks.Token.stolenHandle = IntPtr.Zero;
         }
     }
 }

@@ -102,6 +102,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual(task.status, "complete");
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("PRIVILEGES"));
+            Tasks.Token.stolenHandle = IntPtr.Zero;
         }
         [TestMethod()]
         public void ProcWithTokenInvalid()
@@ -117,6 +118,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual(task.status, "error");
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("2"));
+            Tasks.Token.stolenHandle = IntPtr.Zero;
         }
         [TestMethod()]
         public void ProcessList()
