@@ -99,7 +99,7 @@ namespace SaltedCaramel.Tests
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
-            Assert.IsTrue(task.message.Contains("PRIVILEGES"));
+            Assert.IsTrue(task.message.Contains("Privilege"));
             Tasks.Token.stolenHandle = IntPtr.Zero;
         }
         [TestMethod()]
