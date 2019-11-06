@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -197,7 +196,11 @@ namespace SaltedCaramel
             }
         }
 
-        public bool hasAlternateToken()
+        /// <summary>
+        /// Check if the implant has an alternate token
+        /// </summary>
+        /// <returns>True if the implant has an alternate token, false if not</returns>
+        public bool HasAlternateToken()
         {
             if (Tasks.Token.stolenHandle != IntPtr.Zero)
                 return true;

