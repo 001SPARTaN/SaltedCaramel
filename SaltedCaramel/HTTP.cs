@@ -3,7 +3,7 @@ using System.Text;
 
 namespace SaltedCaramel
 {
-    class HTTP
+    public class HTTP
     {
         private static WebClient client = new WebClient();
         public static SCCrypto crypto = new SCCrypto();

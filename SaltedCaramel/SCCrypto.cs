@@ -7,7 +7,7 @@ namespace SaltedCaramel
 {
     public class SCCrypto
     {
-        internal byte[] PSK { get; set; }
+        public byte[] PSK { get; set; }
 
         internal string Encrypt(string plaintext)
         {

