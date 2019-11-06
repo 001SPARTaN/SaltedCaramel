@@ -49,7 +49,7 @@ namespace SaltedCaramel.Tasks
             }
 
             // STARTUPINFO is used to control a few startup options for our new process
-            Win32.STARTUPINFO startupInfo = new Win32.STARTUPINFO();
+            Win32.Advapi32.STARTUPINFO startupInfo = new Win32.Advapi32.STARTUPINFO();
             // Use C:\Temp as directory to ensure that we have rights to start our new process
             // TODO: determine if this is safe to change
             string directory = "C:\\Temp";
@@ -69,14 +69,14 @@ namespace SaltedCaramel.Tasks
                     startupInfo.hStdError = pipeClient.SafePipeHandle.DangerousGetHandle();
                     // STARTF_USESTDHANDLES ensures that the process will respect hStdInput/hStdOutput
                     // STARTF_USESHOWWINDOW ensures that the process will respect wShowWindow
-                    startupInfo.dwFlags = (uint)Win32.STARTF.STARTF_USESTDHANDLES | (uint)Win32.STARTF.STARTF_USESHOWWINDOW;
+                    startupInfo.dwFlags = (uint)Win32.Advapi32.STARTF.STARTF_USESTDHANDLES | (uint)Win32.Advapi32.STARTF.STARTF_USESHOWWINDOW;
                     startupInfo.wShowWindow = 0;
 
                     // Create PROCESS_INFORMATION struct to hold info about the process we're going to start
-                    Win32.PROCESS_INFORMATION newProc = new Win32.PROCESS_INFORMATION();
+                    Win32.Advapi32.PROCESS_INFORMATION newProc = new Win32.Advapi32.PROCESS_INFORMATION();
 
                     // Finally, create our new process
-                    bool createProcess = Win32.CreateProcessWithTokenW(
+                    bool createProcess = Win32.Advapi32.CreateProcessWithTokenW(
                         TokenHandle,            // hToken
                         IntPtr.Zero,            // dwLogonFlags
                         null,                   // lpApplicationName

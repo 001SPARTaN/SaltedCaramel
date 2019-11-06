@@ -14,10 +14,11 @@ namespace SaltedCaramel.Tasks
             List<Dictionary<string, string>> procList = new List<Dictionary<string, string>>();
             foreach (Process proc in Process.GetProcesses())
             {
-                Dictionary<string, string> procEntry = new Dictionary<string, string>();
-
-                procEntry.Add("process_id", proc.Id.ToString());
-                procEntry.Add("name", proc.ProcessName);
+                Dictionary<string, string> procEntry = new Dictionary<string, string>
+                {
+                    { "process_id", proc.Id.ToString() },
+                    { "name", proc.ProcessName }
+                };
 
                 // This will fail if we don't have permissions to access the process.
                 try { procEntry.Add("parent_process_id", GetParentProcess(proc.Handle).ToString()); }
@@ -29,8 +30,7 @@ namespace SaltedCaramel.Tasks
 
                 try
                 {
-                    bool is64;
-                    Win32.IsWow64Process(proc.Handle, out is64);
+                    Win32.Kernel32.IsWow64Process(proc.Handle, out bool is64);
                     if (is64) procEntry.Add("arch", "x86");
                     else procEntry.Add("arch", "x64");
                 }
@@ -46,8 +46,8 @@ namespace SaltedCaramel.Tasks
         // No way of getting parent process from C#, but we can use NtQueryInformationProcess to get this info.
         public static int GetParentProcess(IntPtr procHandle)
         {
-            Win32.PROCESS_BASIC_INFORMATION procinfo = new Win32.PROCESS_BASIC_INFORMATION();
-            _ = Win32.NtQueryInformationProcess(
+            Win32.Ntdll.PROCESS_BASIC_INFORMATION procinfo = new Win32.Ntdll.PROCESS_BASIC_INFORMATION();
+            _ = Win32.Ntdll.NtQueryInformationProcess(
                 procHandle,                 // ProcessHandle
                 0,                          // processInformationClass
                 ref procinfo,               // ProcessBasicInfo
@@ -63,7 +63,7 @@ namespace SaltedCaramel.Tasks
             try
             {
                 IntPtr tokenHandle = IntPtr.Zero;
-                _ = Win32.OpenProcessToken(
+                _ = Win32.Advapi32.OpenProcessToken(
                     procHandle,                                 // ProcessHandle
                     (uint)TokenAccessLevels.MaximumAllowed,     // desiredAccess
                     out procHandle);                            // TokenHandle
