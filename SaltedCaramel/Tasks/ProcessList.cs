@@ -9,7 +9,7 @@ namespace SaltedCaramel.Tasks
 {
     public class ProcessList
     {
-        public static void Execute(SCTaskObject task)
+        public static void Execute(SCTask task)
         {
             List<Dictionary<string, string>> procList = new List<Dictionary<string, string>>();
             foreach (Process proc in Process.GetProcesses())

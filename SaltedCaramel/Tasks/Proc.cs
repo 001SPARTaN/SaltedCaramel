@@ -15,7 +15,7 @@ namespace SaltedCaramel.Tasks
     {
         // If we have a stolen token, we need to start a process with CreateProcessWithTokenW
         // Otherwise, we can use Process.Start
-        public static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTask task, SCImplant implant)
         {
             if (implant.HasAlternateToken() == true)
                 StartProcessWithToken(task, implant, Token.stolenHandle);
@@ -30,7 +30,7 @@ namespace SaltedCaramel.Tasks
         /// <param name="task"></param>
         /// <param name="implant"></param>
         /// <param name="TokenHandle"></param>
-        public static void StartProcessWithToken(SCTaskObject task, SCImplant implant, IntPtr TokenHandle)
+        public static void StartProcessWithToken(SCTask task, SCImplant implant, IntPtr TokenHandle)
         {
             string[] split;
             string argString;
@@ -199,7 +199,7 @@ namespace SaltedCaramel.Tasks
         /// </summary>
         /// <param name="task"></param>
         /// <param name="implant"></param>
-        public static void StartProcess (SCTaskObject task, SCImplant implant)
+        public static void StartProcess (SCTask task, SCImplant implant)
         {
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());

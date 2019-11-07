@@ -5,7 +5,7 @@ namespace SaltedCaramel.Tasks
 {
     public class Kill
     {
-        public static void Execute(SCTaskObject task)
+        public static void Execute(SCTask task)
         {
             int pid = Convert.ToInt32(task.@params);
             try

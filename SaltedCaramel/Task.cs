@@ -10,7 +10,7 @@ namespace SaltedCaramel
     /// <summary>
     /// A task to assign to an implant
     /// </summary>
-    public class SCTaskObject
+    public class SCTask
     {
         public string command { get; set; }
         public string @params { get; set; }
@@ -24,7 +24,7 @@ namespace SaltedCaramel
         internal string message { get; set; }
 #endif
 
-        public SCTaskObject (string command, string @params, string id)
+        public SCTask (string command, string @params, string id)
         {
             this.command = command;
             this.@params = @params;

