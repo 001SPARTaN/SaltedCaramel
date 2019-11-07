@@ -1,5 +1,8 @@
 # SaltedCaramel
- Apfell implant written in C#.
+ Apfell implant written in C#. This is just for learning purposes, probably not ready for production use.
+ 
+## Usage
+**SaltedCaramel.exe** [Apfell server URL] [AES PSK] [Payload UUID]
 
 ## Supported commands
 - **cd** - Change current directory
