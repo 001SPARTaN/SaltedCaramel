@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
-using SaltedCaramel.Tasks;
+﻿using SaltedCaramel.Tasks;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 
 namespace SaltedCaramel
 {
@@ -159,12 +156,20 @@ namespace SaltedCaramel
             }
             else if (this.status == "error") implant.SendError(this.id, this.message);
 
-            for (int i = 0; i < implant.jobs.Count; i++)
+            try
             {
-                if (implant.jobs[i].shortId == this.shortId)
+                for (int i = 0; i < implant.jobs.Count; ++i)
                 {
-                    implant.jobs.RemoveAt(i);
+                    if (implant.jobs[i].shortId == this.shortId)
+                    {
+                        implant.jobs.RemoveAt(i);
+                    }
                 }
+
+            }
+            catch (Exception e)
+            {
+                // Do nothing, this should only happen when testing.
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SaltedCaramel;
 using System;
 using System.Diagnostics;
 
@@ -11,21 +12,21 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void TaskChangeDirValid()
         {
-            SCTaskObject task = new SCTaskObject("cd", "C:\\Temp", "1");
+            SCTask task = new SCTask("cd", "C:\\Temp", "1");
             Tasks.ChangeDir.Execute(task);
             Assert.AreEqual("complete", task.status);
         }
         [TestMethod()]
         public void TaskChangeDirInvalid()
         {
-            SCTaskObject task = new SCTaskObject("cd", "C:\\asdf", "1");
+            SCTask task = new SCTask("cd", "C:\\asdf", "1");
             Tasks.ChangeDir.Execute(task);
             Assert.AreEqual("error", task.status);
         }
         [TestMethod()]
         public void DirectoryListValid()
         {
-            SCTaskObject task = new SCTaskObject("ls", "C:\\Temp", "1");
+            SCTask task = new SCTask("ls", "C:\\Temp", "1");
             Tasks.DirectoryList.Execute(task, implant);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
@@ -33,7 +34,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void DirectoryListInvalid()
         {
-            SCTaskObject task = new SCTaskObject("ls", "C:\\asdf", "1");
+            SCTask task = new SCTask("ls", "C:\\asdf", "1");
             Tasks.DirectoryList.Execute(task, implant);
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
@@ -46,7 +47,7 @@ namespace SaltedCaramel.Tests
             si.FileName = "C:\\Windows\\System32\\notepad.exe";
             proc.StartInfo = si;
             proc.Start();
-            SCTaskObject task = new SCTaskObject("kill", proc.Id.ToString(), "1");
+            SCTask task = new SCTask("kill", proc.Id.ToString(), "1");
             Tasks.Kill.Execute(task);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
@@ -54,7 +55,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void KillInvalid()
         {
-            SCTaskObject task = new SCTaskObject("kill", "1234567", "1");
+            SCTask task = new SCTask("kill", "1234567", "1");
             Tasks.Kill.Execute(task);
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
@@ -62,7 +63,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void PowerShellValid()
         {
-            SCTaskObject task = new SCTaskObject("powershell", "Get-Process", "1");
+            SCTask task = new SCTask("powershell", "Get-Process", "1");
             Tasks.Powershell.Execute(task);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
@@ -71,7 +72,7 @@ namespace SaltedCaramel.Tests
         public void ProcValid()
         {
             Tasks.Token.stolenHandle = IntPtr.Zero;
-            SCTaskObject task = new SCTaskObject("run", "whoami /priv", "1");
+            SCTask task = new SCTask("run", "whoami /priv", "1");
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
@@ -80,7 +81,7 @@ namespace SaltedCaramel.Tests
         public void ProcInvalid()
         {
             Tasks.Token.stolenHandle = IntPtr.Zero;
-            SCTaskObject task = new SCTaskObject("run", "asdf", "1");
+            SCTask task = new SCTask("run", "asdf", "1");
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
@@ -89,7 +90,7 @@ namespace SaltedCaramel.Tests
         public void ProcWithTokenValid()
         {
             Tasks.Token.stolenHandle = IntPtr.Zero;
-            SCTaskObject task = new SCTaskObject("steal_token", "", "1");
+            SCTask task = new SCTask("steal_token", "", "1");
             task.DispatchTask(implant);
 
             task.command = "run";
@@ -105,7 +106,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void ProcWithTokenInvalid()
         {
-            SCTaskObject task = new SCTaskObject("steal_token", "", "1");
+            SCTask task = new SCTask("steal_token", "", "1");
             task.DispatchTask(implant);
 
             task.command = "run";
@@ -121,7 +122,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void ProcessList()
         {
-            SCTaskObject task = new SCTaskObject("ps", "", "1");
+            SCTask task = new SCTask("ps", "", "1");
             Tasks.ProcessList.Execute(task);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
@@ -131,14 +132,14 @@ namespace SaltedCaramel.Tests
         //[TestMethod()]
         //public void ScreenCapture()
         //{
-        //    SCTaskObject task = new SCTaskObject("screencapture", "", "1");
+        //    SCTask task = new SCTask("screencapture", "", "1");
         //    task.DispatchTask(implant);
         //    Assert.AreEqual(task.status, "complete");
         //}
         [TestMethod()]
         public void TokenWinlogon()
         {
-            SCTaskObject task = new SCTaskObject("steal_token", "", "1");
+            SCTask task = new SCTask("steal_token", "", "1");
             Tasks.Token.Execute(task);
             Assert.AreEqual(task.status, "complete");
             Tasks.Token.stolenHandle = IntPtr.Zero;
@@ -146,7 +147,7 @@ namespace SaltedCaramel.Tests
         [TestMethod()]
         public void TokenInvalid()
         {
-            SCTaskObject task = new SCTaskObject("steal_token", "12351", "1");
+            SCTask task = new SCTask("steal_token", "12351", "1");
             Tasks.Token.Execute(task);
             Assert.AreEqual(task.status, "error");
             Tasks.Token.stolenHandle = IntPtr.Zero;

