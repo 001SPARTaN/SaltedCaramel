@@ -57,6 +57,59 @@ namespace SaltedCaramel.Win32
             TokenImpersonation
         }
 
+        internal enum TOKEN_INFORMATION_CLASS
+        {
+            TokenUser,
+            TokenGroups,
+            TokenPrivileges,
+            TokenOwner,
+            TokenPrimaryGroup,
+            TokenDefaultDacl,
+            TokenSource,
+            TokenType,
+            TokenImpersonationLevel,
+            TokenStatistics,
+            TokenRestrictedSids,
+            TokenSessionId,
+            TokenGroupsAndPrivileges,
+            TokenSessionReference,
+            TokenSandBoxInert,
+            TokenAuditPolicy,
+            TokenOrigin,
+            TokenElevationType,
+            TokenLinkedToken,
+            TokenElevation,
+            TokenHasRestrictions,
+            TokenAccessInformation,
+            TokenVirtualizationAllowed,
+            TokenVirtualizationEnabled,
+            TokenIntegrityLevel,
+            TokenUIAccess,
+            TokenMandatoryPolicy,
+            TokenLogonSid,
+            TokenIsAppContainer,
+            TokenCapabilities,
+            TokenAppContainerSid,
+            TokenAppContainerNumber,
+            TokenUserClaimAttributes,
+            TokenDeviceClaimAttributes,
+            TokenRestrictedUserClaimAttributes,
+            TokenRestrictedDeviceClaimAttributes,
+            TokenDeviceGroups,
+            TokenRestrictedDeviceGroups,
+            TokenSecurityAttributes,
+            TokenIsRestricted,
+            TokenProcessTrustLevel,
+            TokenPrivateNameSpace,
+            TokenSingletonAttributes,
+            TokenBnoIsolation,
+            TokenChildProcessFlags,
+            MaxTokenInfoClass,
+            TokenIsLessPrivilegedAppContainer,
+            TokenIsSandboxed,
+            TokenOriginatingProcessTrustLevel
+        }
+
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool CreateProcessWithTokenW(
             IntPtr hToken,
@@ -77,6 +130,14 @@ namespace SaltedCaramel.Win32
             uint ImpersonationLevel,
             TOKEN_TYPE TokenType,
             out IntPtr phNewToken);
+
+        [DllImport("Advapi32.dll", SetLastError = true)]
+        public extern static bool GetTokenInformation(
+          IntPtr TokenHandle,
+          TOKEN_INFORMATION_CLASS TokenInformationClass,
+          IntPtr TokenInformation,
+          uint TokenInformationLength,
+          out uint ReturnLength);
 
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]

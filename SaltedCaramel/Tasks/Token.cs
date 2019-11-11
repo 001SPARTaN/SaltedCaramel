@@ -108,6 +108,7 @@ namespace SaltedCaramel.Tasks
                 task.message = e.Message;
             }
         }
+
         public static void Revert(SCTask task)
         {
             Win32.Kernel32.CloseHandle(stolenHandle);
