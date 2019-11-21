@@ -4,7 +4,7 @@ using Reflection = System.Reflection;
 
 namespace SaltedCaramel.Tasks
 {
-    class Assembly
+    class ExecAssembly
     {
         public static void Execute(SCTask task, SCImplant implant)
         {

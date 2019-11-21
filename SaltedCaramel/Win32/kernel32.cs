@@ -57,8 +57,8 @@ namespace SaltedCaramel.Win32
 
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         internal static extern IntPtr VirtualAlloc(
-            uint lpAddress, 
-            uint dwSize, 
+            IntPtr lpAddress, 
+            IntPtr dwSize, 
             AllocationType flAllocationType, 
             MemoryProtection flProtect);
 

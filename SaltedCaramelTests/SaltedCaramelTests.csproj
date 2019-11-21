@@ -85,7 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SaltedCaramel\SaltedCaramel.csproj">
-      <Project>{D14E4A53-B9B5-4563-8290-BA8487575255}</Project>
+      <Project>{d14e4a53-b9b5-4563-8290-ba8487575255}</Project>
       <Name>SaltedCaramel</Name>
     </ProjectReference>
   </ItemGroup>
