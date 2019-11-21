@@ -40,7 +40,7 @@ namespace SaltedCaramel.Win32
 
         [DllImport("kernel32.dll")]
         internal static extern IntPtr CreateThread(
-           IntPtr ThreadAttributes,
+           uint ThreadAttributes,
            uint StackSize,
            IntPtr StartFunction,
            IntPtr ThreadParameter,
@@ -58,7 +58,7 @@ namespace SaltedCaramel.Win32
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         internal static extern IntPtr VirtualAlloc(
             IntPtr lpAddress, 
-            IntPtr dwSize, 
+            ulong dwSize, 
             AllocationType flAllocationType, 
             MemoryProtection flProtect);
 

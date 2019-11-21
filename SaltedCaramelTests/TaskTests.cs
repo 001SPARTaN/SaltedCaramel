@@ -156,8 +156,7 @@ namespace SaltedCaramel.Tests
         {
             SCTask task = new SCTask("shinject", "", "1");
             Tasks.Shellcode.Execute(task);
-            Assert.AreEqual(task.status, "error");
-            Tasks.Token.stolenHandle = IntPtr.Zero;
+            Assert.AreEqual(task.status, "complete");
         }
     }
 }
