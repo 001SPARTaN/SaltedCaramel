@@ -172,7 +172,7 @@ namespace SaltedCaramel
                 }
 
             }
-            catch (Exception e)
+            catch
             {
                 // Do nothing, this should only happen when testing.
             }

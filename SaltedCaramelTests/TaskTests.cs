@@ -15,6 +15,7 @@ namespace SaltedCaramel.Tests
             Tasks.ChangeDir.Execute(task);
             Assert.AreEqual("complete", task.status);
         }
+
         [TestMethod()]
         public void TaskChangeDirInvalid()
         {
@@ -22,6 +23,7 @@ namespace SaltedCaramel.Tests
             Tasks.ChangeDir.Execute(task);
             Assert.AreEqual("error", task.status);
         }
+
         [TestMethod()]
         public void DirectoryListValid()
         {
@@ -30,6 +32,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
         }
+
         [TestMethod()]
         public void DirectoryListInvalid()
         {
@@ -38,6 +41,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
         }
+
         [TestMethod()]
         public void KillValid()
         {
@@ -51,6 +55,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
         }
+
         [TestMethod()]
         public void KillInvalid()
         {
@@ -59,6 +64,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
         }
+
         [TestMethod()]
         public void PowerShellValid()
         {
@@ -67,6 +73,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
         }
+
         [TestMethod()]
         public void ProcValid()
         {
@@ -76,6 +83,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
         }
+
         [TestMethod()]
         public void ProcInvalid()
         {
@@ -85,6 +93,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
         }
+        
         [TestMethod()]
         public void ProcWithTokenValid()
         {
@@ -102,6 +111,7 @@ namespace SaltedCaramel.Tests
             Assert.IsTrue(task.message.Contains("Privilege"));
             Tasks.Token.stolenHandle = IntPtr.Zero;
         }
+
         [TestMethod()]
         public void ProcWithTokenInvalid()
         {
@@ -118,6 +128,7 @@ namespace SaltedCaramel.Tests
             Assert.IsTrue(task.message.Contains("2"));
             Tasks.Token.stolenHandle = IntPtr.Zero;
         }
+
         [TestMethod()]
         public void ProcessList()
         {
@@ -127,6 +138,7 @@ namespace SaltedCaramel.Tests
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("explorer"));
         }
+
         // Relies on being able to communicate with Apfell server
         //[TestMethod()]
         //public void ScreenCapture()
@@ -135,28 +147,31 @@ namespace SaltedCaramel.Tests
         //    task.DispatchTask(implant);
         //    Assert.AreEqual(task.status, "complete");
         //}
+
         [TestMethod()]
         public void TokenWinlogon()
         {
             SCTask task = new SCTask("steal_token", "", "1");
             Tasks.Token.Execute(task);
-            Assert.AreEqual(task.status, "complete");
+            Assert.AreEqual("complete", task.status);
             Tasks.Token.stolenHandle = IntPtr.Zero;
         }
+
         [TestMethod()]
         public void TokenInvalid()
         {
             SCTask task = new SCTask("steal_token", "12351", "1");
             Tasks.Token.Execute(task);
-            Assert.AreEqual(task.status, "error");
+            Assert.AreEqual("error", task.status);
             Tasks.Token.stolenHandle = IntPtr.Zero;
         }
+        
         [TestMethod()]
         public void Shellcode()
         {
             SCTask task = new SCTask("shinject", "", "1");
             Tasks.Shellcode.Execute(task);
-            Assert.AreEqual(task.status, "complete");
+            Assert.AreEqual("complete", task.status);
         }
     }
 }

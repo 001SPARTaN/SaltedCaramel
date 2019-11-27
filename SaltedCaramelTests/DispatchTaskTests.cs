@@ -146,5 +146,12 @@ namespace SaltedCaramel.Tests
             task.DispatchTask(implant);
             Assert.AreEqual(task.status, "error");
         }
+        [TestMethod()]
+        public void Shellcode()
+        {
+            SCTask task = new SCTask("shinject", "", "1");
+            task.DispatchTask(implant);
+            Assert.AreEqual(task.status, "complete");
+        }
     }
 }
