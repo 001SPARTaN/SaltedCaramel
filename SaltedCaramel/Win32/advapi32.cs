@@ -111,6 +111,20 @@ namespace SaltedCaramel.Win32
         }
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern bool CreateProcessWithLogonW(
+            string lpUsername,
+            string lpDomain,
+            string lpPassword,
+            IntPtr dwLogonFlags,
+            string lpApplicationName,
+            string lpCommandLine,
+            IntPtr dwCreationFlags,
+            IntPtr lpEnvironment,
+            string lpCurrentDirectory,
+            [In] ref STARTUPINFO lpStartupInfo,
+            out PROCESS_INFORMATION lpProcessInformation);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool CreateProcessWithTokenW(
             IntPtr hToken,
             IntPtr dwLogonFlags,

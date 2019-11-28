@@ -95,9 +95,45 @@ namespace SaltedCaramel.Tests
         }
         
         [TestMethod()]
+        public void ProcWithCredsValid()
+        {
+            Tasks.Token.Revert();
+            SCTask task = new SCTask("make_token", "lowpriv Passw0rd!", "1");
+            task.DispatchTask(implant);
+
+            task.command = "run";
+            task.@params = "whoami /priv";
+            task.status = "";
+            task.message = "";
+            Tasks.Proc.Execute(task, implant);
+            Assert.AreEqual("complete", task.status);
+            Assert.IsNotNull(task.message);
+            Assert.IsTrue(task.message.Contains("Privilege"));
+            Tasks.Token.Revert();
+        }
+
+        [TestMethod()]
+        public void ProcWithCredsInvalid()
+        {
+            Tasks.Token.Revert();
+            SCTask task = new SCTask("make_token", "lowpriv Passw0rd!", "1");
+            task.DispatchTask(implant);
+
+            task.command = "run";
+            task.@params = "asdf";
+            task.status = "";
+            task.message = "";
+            Tasks.Proc.Execute(task, implant);
+            Assert.AreEqual("error", task.status);
+            Assert.IsNotNull(task.message);
+            Assert.IsTrue(task.message.Contains("specified"));
+            Tasks.Token.Revert();
+        }
+
+        [TestMethod()]
         public void ProcWithTokenValid()
         {
-            Tasks.Token.stolenHandle = IntPtr.Zero;
+            Tasks.Token.Revert();
             SCTask task = new SCTask("steal_token", "", "1");
             task.DispatchTask(implant);
 
@@ -109,12 +145,13 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("Privilege"));
-            Tasks.Token.stolenHandle = IntPtr.Zero;
+            Tasks.Token.Revert();
         }
 
         [TestMethod()]
         public void ProcWithTokenInvalid()
         {
+            Tasks.Token.Revert();
             SCTask task = new SCTask("steal_token", "", "1");
             task.DispatchTask(implant);
 
@@ -126,7 +163,7 @@ namespace SaltedCaramel.Tests
             Assert.AreEqual("error", task.status);
             Assert.IsNotNull(task.message);
             Assert.IsTrue(task.message.Contains("2"));
-            Tasks.Token.stolenHandle = IntPtr.Zero;
+            Tasks.Token.Revert();
         }
 
         [TestMethod()]
@@ -154,7 +191,7 @@ namespace SaltedCaramel.Tests
             SCTask task = new SCTask("steal_token", "", "1");
             Tasks.Token.Execute(task);
             Assert.AreEqual("complete", task.status);
-            Tasks.Token.stolenHandle = IntPtr.Zero;
+            Tasks.Token.Revert();
         }
 
         [TestMethod()]
@@ -163,7 +200,7 @@ namespace SaltedCaramel.Tests
             SCTask task = new SCTask("steal_token", "12351", "1");
             Tasks.Token.Execute(task);
             Assert.AreEqual("error", task.status);
-            Tasks.Token.stolenHandle = IntPtr.Zero;
+            Tasks.Token.Revert();
         }
         
         [TestMethod()]

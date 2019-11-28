@@ -222,5 +222,12 @@ namespace SaltedCaramel
                 return true;
             else return false;
         }
+
+        public bool HasCredentials()
+        {
+            if (Tasks.Token.Credentials.Key != null)
+                return true;
+            else return false;
+        }
     }
 }

