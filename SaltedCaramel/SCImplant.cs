@@ -225,7 +225,7 @@ namespace SaltedCaramel
 
         public bool HasCredentials()
         {
-            if (Tasks.Token.Credentials.Key != null)
+            if (Tasks.Token.Cred.User != null)
                 return true;
             else return false;
         }
