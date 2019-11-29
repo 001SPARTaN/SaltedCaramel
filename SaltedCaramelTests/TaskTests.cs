@@ -108,7 +108,25 @@ namespace SaltedCaramel.Tests
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
-            Assert.IsTrue(task.message.Contains("Privilege"));
+            Assert.IsTrue(task.message.Contains("Privilege") || task.message.Contains("Execution"));
+            Tasks.Token.Revert();
+        }
+
+        [TestMethod()]
+        public void ProcWithLogonValid()
+        {
+            Tasks.Token.Revert();
+            SCTask task = new SCTask("make_token", "lowpriv Passw0rd! netonly", "1");
+            task.DispatchTask(implant);
+
+            task.command = "run";
+            task.@params = "whoami /priv";
+            task.status = "";
+            task.message = "";
+            Tasks.Proc.Execute(task, implant);
+            Assert.AreEqual("complete", task.status);
+            Assert.IsNotNull(task.message);
+            Assert.IsTrue(task.message.Contains("Privilege") || task.message.Contains("Execution"));
             Tasks.Token.Revert();
         }
 
@@ -144,7 +162,7 @@ namespace SaltedCaramel.Tests
             Tasks.Proc.Execute(task, implant);
             Assert.AreEqual("complete", task.status);
             Assert.IsNotNull(task.message);
-            Assert.IsTrue(task.message.Contains("Privilege"));
+            Assert.IsTrue(task.message.Contains("Privilege") || task.message.Contains("Execution"));
             Tasks.Token.Revert();
         }
 

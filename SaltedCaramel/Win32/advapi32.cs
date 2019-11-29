@@ -115,7 +115,7 @@ namespace SaltedCaramel.Win32
             string lpUsername,
             string lpDomain,
             string lpPassword,
-            IntPtr dwLogonFlags,
+            uint dwLogonFlags,
             string lpApplicationName,
             string lpCommandLine,
             IntPtr dwCreationFlags,

