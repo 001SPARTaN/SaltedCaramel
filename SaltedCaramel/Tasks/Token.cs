@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -35,19 +37,27 @@ namespace SaltedCaramel.Tasks
 
         public static void MakeToken(SCTask task)
         {
-            string first = task.@params.Split(' ')[0];
-            if (first.Contains("\\"))
-            {
-                Cred.Domain = first.Split('\\')[0];
-                Cred.User = first.Split('\\')[1];
-            }
-            else
-            {
-                Cred.Domain = ".";
-                Cred.User = first;
-            }
+            // make_token domain user password netonly
+            JObject json = (JObject)JsonConvert.DeserializeObject(task.@params);
+            Cred.Domain = json.Value<string>("domain");
+            Cred.User = json.Value<string>("user");
+            Cred.Password = json.Value<string>("password");
+            if (json.Value<string>("netonly") == "true")
+                Cred.NetOnly = true;
 
-            Cred.Password = task.@params.Split(' ')[1];
+            //string first = task.@params.Split(' ')[0];
+            //if (first.Contains("\\"))
+            //{
+            //    Cred.Domain = first.Split('\\')[0];
+            //    Cred.User = first.Split('\\')[1];
+            //}
+            //else
+            //{
+            //    Cred.Domain = ".";
+            //    Cred.User = first;
+            //}
+
+            //Cred.Password = task.@params.Split(' ')[1];
             Cred.SecurePassword = new SecureString();
             // Dumb workaround, but we have to do this to make a SecureString
             // out of a string
@@ -56,12 +66,12 @@ namespace SaltedCaramel.Tasks
                 Cred.SecurePassword.AppendChar(c);
             }
 
-            Cred.NetOnly = false;
-            if (task.@params.Split(' ').Length > 2)
-            {
-                if (task.@params.Split(' ')[2] == "netonly")
-                    Cred.NetOnly = true;
-            }
+            //Cred.NetOnly = false;
+            //if (task.@params.Split(' ').Length > 2)
+            //{
+            //    if (task.@params.Split(' ')[2] == "netonly")
+            //        Cred.NetOnly = true;
+            //}
 
             task.status = "complete";
             if (Cred.NetOnly)

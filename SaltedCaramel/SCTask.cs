@@ -172,9 +172,10 @@ namespace SaltedCaramel
                 }
 
             }
-            catch
+            catch (Exception e)
             {
-                // Do nothing, this should only happen when testing.
+                // This should only happen when testing.
+                Debug.WriteLine($"[!] Caught exception: {e.Message}");
             }
         }
     }
